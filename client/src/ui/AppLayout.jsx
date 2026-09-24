@@ -22,6 +22,7 @@ export function AppLayout() {
           {user?.role === 'recruiter' && <Button component={Link} to="/recruiter/jobs">Manage Jobs</Button>}
           {user?.role === 'recruiter' && <Button component={Link} to="/recruiter/candidates">Candidates</Button>}
           {user && <Button component={Link} to={dashboard}>Dashboard</Button>}
+          {user && <Button component={Link} to="/profile">Profile</Button>}
           {user ? (
             <Button startIcon={<LogoutIcon />} onClick={() => { logout(); navigate('/'); }}>Sign out</Button>
           ) : (
