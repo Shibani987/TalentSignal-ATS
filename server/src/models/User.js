@@ -38,6 +38,16 @@ const userSchema = new mongoose.Schema({
       mimeType: String,
       uploadedAt: Date,
       extractedText: String
+    },
+    resumeAnalysis: {
+      status: { type: String, enum: ['pending', 'processing', 'succeeded', 'failed'], default: 'pending' },
+      score: { type: Number, min: 0, max: 100 },
+      strengths: [String],
+      improvements: [String],
+      summary: String,
+      provider: String,
+      error: String,
+      analyzedAt: Date
     }
   }
 }, { timestamps: true });

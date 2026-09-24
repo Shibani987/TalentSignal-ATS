@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Grid, LinearProgress, Stack, TextField, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useMutation } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -17,6 +17,7 @@ export function Profile() {
   const firstEducation = useMemo(() => firstItem(profile.education, { school: '', degree: '', startYear: '', endYear: '' }), [profile.education]);
 
   const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
   const [company, setCompany] = useState({
     name: user.company?.name || '',
     website: user.company?.website || '',
@@ -41,9 +42,10 @@ export function Profile() {
   const saveProfile = useMutation({
     mutationFn: async () => {
       const payload = user.role === 'recruiter'
-        ? { name, company }
+        ? { name, email, company }
         : {
             name,
+            email,
             applicantProfile: {
               ...profile,
               phone: applicant.phone,
@@ -100,6 +102,7 @@ export function Profile() {
                 {saveProfile.isSuccess && <Alert severity="success">Profile updated.</Alert>}
                 {saveProfile.isError && <Alert severity="error">{errorMessage(saveProfile.error)}</Alert>}
                 <TextField label="Full name" value={name} onChange={(event) => setName(event.target.value)} />
+                <TextField label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
 
                 {user.role === 'recruiter' ? (
                   <>
@@ -175,6 +178,38 @@ export function Profile() {
                   <Typography color="text.secondary">
                     Current resume: {user.applicantProfile?.resume?.fileName || 'No profile resume uploaded yet'}
                   </Typography>
+                  {user.applicantProfile?.resumeAnalysis?.status === 'succeeded' && (
+                    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
+                      <Stack spacing={1.5}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
+                          <Typography variant="h6">ATS resume score</Typography>
+                          <Chip label={`${user.applicantProfile.resumeAnalysis.score}/100`} color="primary" />
+                        </Stack>
+                        <LinearProgress variant="determinate" value={user.applicantProfile.resumeAnalysis.score} sx={{ height: 8, borderRadius: 4 }} />
+                        <Typography color="text.secondary">{user.applicantProfile.resumeAnalysis.summary}</Typography>
+                        <Box>
+                          <Typography variant="subtitle2" gutterBottom>What is working</Typography>
+                          <Stack direction="row" spacing={1} flexWrap="wrap">
+                            {user.applicantProfile.resumeAnalysis.strengths?.map((item) => <Chip key={item} label={item} color="success" variant="outlined" />)}
+                          </Stack>
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle2" gutterBottom>Improve this before applying</Typography>
+                          <Stack spacing={1}>
+                            {user.applicantProfile.resumeAnalysis.improvements?.map((item) => (
+                              <Typography key={item} color="text.secondary">- {item}</Typography>
+                            ))}
+                          </Stack>
+                        </Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Provider: {user.applicantProfile.resumeAnalysis.provider || 'demo'}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  )}
+                  {user.applicantProfile?.resumeAnalysis?.status === 'failed' && (
+                    <Alert severity="warning">{user.applicantProfile.resumeAnalysis.error || 'Resume analysis failed.'}</Alert>
+                  )}
                   <Button component="label" variant="outlined" startIcon={<UploadFileIcon />}>
                     {resume ? resume.name : 'Choose PDF or DOCX'}
                     <input
