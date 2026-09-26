@@ -9,7 +9,7 @@ TalentSignal ATS is a full-stack recruiting platform with separate recruiter and
 - Auth: bcrypt password hashing and JWT role-based authorization
 - Uploads: Multer with private S3 storage when configured, local demo storage otherwise
 - Resume extraction: PDF and DOCX text extraction
-- AI: OpenAI when configured, deterministic demo analysis otherwise
+- AI: OpenAI or Gemini when configured, deterministic demo analysis otherwise
 - Email: Nodemailer when SMTP is configured
 
 ## Prerequisites
@@ -63,7 +63,8 @@ The backend test suite covers authorization, recruiter job publishing, and AI an
 - Set `FRONTEND_ORIGIN` to the deployed frontend origin
 - Use MongoDB Atlas or a managed MongoDB instance
 - Configure S3 with private objects only; the API returns short-lived signed URLs
-- Configure `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL`
+- Configure `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` for OpenAI analysis
+- Or configure `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL` for Gemini analysis
 - Configure SMTP variables for status updates and interview invitations
 - Run the frontend build with `npm run build --workspace client`
 - Start the API with `npm start --workspace server`
