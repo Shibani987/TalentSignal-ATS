@@ -26,6 +26,14 @@ export function validateResumeReadinessResponse(value) {
   return resumeReadinessSchema.parse(value);
 }
 
+export function parseJsonResponse(content, label = 'AI response') {
+  try {
+    return JSON.parse(content);
+  } catch {
+    throw new Error(`${label} was not valid JSON`);
+  }
+}
+
 export function activeAnalysisProvider() {
   if (env.aiProvider === 'openai' && env.openAiApiKey) return 'openai';
   if (env.aiProvider === 'gemini' && env.geminiApiKey) return 'gemini';
@@ -95,7 +103,7 @@ async function analyzeWithOpenAi({ resumeText, job }) {
     ]
   });
 
-  return validateAnalysisResponse(JSON.parse(completion.choices[0].message.content));
+  return validateAnalysisResponse(parseJsonResponse(completion.choices[0].message.content, 'OpenAI analysis response'));
 }
 
 async function analyzeWithGemini({ resumeText, job }) {
@@ -105,7 +113,7 @@ async function analyzeWithGemini({ resumeText, job }) {
     generationConfig: { responseMimeType: 'application/json' }
   });
   const result = await model.generateContent(buildAnalysisPrompt({ resumeText, job }));
-  return validateAnalysisResponse(JSON.parse(result.response.text()));
+  return validateAnalysisResponse(parseJsonResponse(result.response.text(), 'Gemini analysis response'));
 }
 
 async function analyzeProfileWithOpenAi({ resumeText, profile }) {
@@ -118,7 +126,7 @@ async function analyzeProfileWithOpenAi({ resumeText, profile }) {
       { role: 'user', content: buildProfilePrompt({ resumeText, profile }) }
     ]
   });
-  return validateResumeReadinessResponse(JSON.parse(completion.choices[0].message.content));
+  return validateResumeReadinessResponse(parseJsonResponse(completion.choices[0].message.content, 'OpenAI resume readiness response'));
 }
 
 async function analyzeProfileWithGemini({ resumeText, profile }) {
@@ -128,7 +136,7 @@ async function analyzeProfileWithGemini({ resumeText, profile }) {
     generationConfig: { responseMimeType: 'application/json' }
   });
   const result = await model.generateContent(buildProfilePrompt({ resumeText, profile }));
-  return validateResumeReadinessResponse(JSON.parse(result.response.text()));
+  return validateResumeReadinessResponse(parseJsonResponse(result.response.text(), 'Gemini resume readiness response'));
 }
 
 function demoProfileAnalysis(resumeText, profile) {
