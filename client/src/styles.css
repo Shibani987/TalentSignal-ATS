@@ -1,0 +1,15 @@
+body {
+  min-width: 320px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(251,250,247,0.96)),
+    radial-gradient(circle at top right, rgba(48,79,254,0.08), transparent 34%);
+}
