@@ -30,7 +30,7 @@ export function JobDetail() {
     <Stack spacing={3}>
       <Card><CardContent sx={{ p: { xs: 3, md: 5 } }}>
         <Stack spacing={2}>
-          <Box><Typography variant="h3">{job.title}</Typography><Typography color="text.secondary">{job.company} · {job.location}</Typography></Box>
+          <Box><Typography variant="h3">{job.title}</Typography><Typography color="text.secondary">{job.company} - {job.location}</Typography></Box>
           <Stack direction="row" spacing={1} flexWrap="wrap"><Chip label={job.workMode} /><Chip label={job.employmentType} />{job.requiredSkills?.map((s) => <Chip key={s} label={s} variant="outlined" />)}</Stack>
           <Typography>{job.description}</Typography>
           <Box><Typography variant="h6">Responsibilities</Typography><ul>{job.responsibilities?.map((r) => <li key={r}>{r}</li>)}</ul></Box>
