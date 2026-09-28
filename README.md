@@ -49,6 +49,17 @@ Demo accounts after seeding:
 - Recruiter: `recruiter@example.com` / `Password123!`
 - Applicant: `applicant@example.com` / `Password123!`
 
+## Local Health Check
+
+Run the backend tests and frontend production build before pushing:
+
+```bash
+npm test
+npm run build
+```
+
+The test suite uses an in-memory MongoDB instance, so it does not require a local database. The frontend build validates that the applicant and recruiter workspaces compile with the current API client and routing setup.
+
 ## Tests
 
 ```bash
@@ -68,6 +79,14 @@ The backend test suite covers authorization, recruiter job publishing, and AI an
 - Configure SMTP variables for status updates and interview invitations
 - Run the frontend build with `npm run build --workspace client`
 - Start the API with `npm start --workspace server`
+
+## Release Checklist
+
+- Confirm `JWT_SECRET`, `FRONTEND_ORIGIN`, and `MONGODB_URI` are set for the target environment
+- Confirm resume storage is either configured with private S3 credentials or intentionally using demo local storage
+- Confirm `AI_PROVIDER` and matching model credentials are set when live AI analysis is required
+- Confirm SMTP settings are present when candidate status emails should be delivered
+- Run backend tests and the frontend production build from a clean checkout
 
 ## Implemented Flows
 
