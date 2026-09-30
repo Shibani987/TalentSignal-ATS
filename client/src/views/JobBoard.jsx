@@ -53,21 +53,21 @@ export function JobBoard() {
             </Typography>
           </Grid>
           <Grid item xs={12} md={5}>
-            <Card sx={{ bgcolor: 'rgba(16, 32, 51, 0.92)', color: '#fff', borderColor: 'rgba(255,255,255,0.12)' }}>
+            <Card sx={{ bgcolor: 'rgba(255,255,255,0.78)', color: 'text.primary', borderColor: 'rgba(15, 23, 42, 0.1)' }}>
               <CardContent sx={{ p: 3 }}>
                 <Stack spacing={2}>
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box sx={{ width: 42, height: 42, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: 'rgba(255,255,255,0.1)' }}>
+                    <Box sx={{ width: 42, height: 42, borderRadius: 2, display: 'grid', placeItems: 'center', color: '#0f172a', bgcolor: 'rgba(15, 23, 42, 0.06)' }}>
                       <WorkHistoryIcon />
                     </Box>
                     <Box>
                       <Typography variant="h5">{data?.items?.length ?? 0}</Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.68)' }}>Visible openings right now</Typography>
+                      <Typography variant="body2" color="text.secondary">Visible openings right now</Typography>
                     </Box>
                   </Stack>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="Resume backed" size="small" sx={{ color: '#fff', bgcolor: 'rgba(15,159,110,0.22)' }} />
-                    <Chip label="Score tracking" size="small" sx={{ color: '#fff', bgcolor: 'rgba(249,115,22,0.24)' }} />
+                    <Chip label="Resume backed" size="small" sx={{ color: '#0f172a', bgcolor: 'rgba(15,159,110,0.18)' }} />
+                    <Chip label="Score tracking" size="small" sx={{ color: '#0f172a', bgcolor: 'rgba(249,115,22,0.2)' }} />
                   </Stack>
                 </Stack>
               </CardContent>
