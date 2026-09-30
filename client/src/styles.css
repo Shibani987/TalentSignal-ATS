@@ -32,6 +32,14 @@ a {
   animation: soft-pulse 2.6s ease-in-out infinite;
 }
 
+.float-card {
+  animation: float-card 5.6s ease-in-out infinite;
+}
+
+.float-card-delay {
+  animation-delay: 900ms;
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
@@ -40,6 +48,15 @@ a {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes float-card {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 }
 
@@ -56,7 +73,8 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .page-content,
-  .soft-pulse {
+  .soft-pulse,
+  .float-card {
     animation: none;
   }
 
