@@ -67,21 +67,23 @@ export function JobBoard() {
 
         <Grid container spacing={4} alignItems="center" sx={{ position: 'relative', minHeight: { xs: 720, md: 570 }, p: { xs: 3, md: 6 } }}>
           <Grid item xs={12} md={6.2}>
-            <Chip icon={<AutoAwesomeIcon />} label="TalentSignal ATS" sx={{ mb: 2.5, color: '#dff7ef', bgcolor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)' }} />
-            <Typography variant="h2" sx={{ maxWidth: 680, color: '#fff', fontSize: { xs: 44, md: 72 }, lineHeight: 1.02 }}>
+            <Box sx={{ maxWidth: 620, pt: { xs: 5, md: 0 } }}>
+            <Chip icon={<AutoAwesomeIcon />} label="TalentSignal ATS" sx={{ mb: 2.5, color: '#0f4657', bgcolor: 'rgba(224,242,254,0.9)', border: '1px solid rgba(21,94,117,0.18)', '& .MuiChip-icon': { color: '#0f4657' } }} />
+            <Typography variant="h2" sx={{ color: '#102033', fontSize: { xs: 42, md: 66 }, lineHeight: 1.02 }}>
               Hire smarter candidates. Faster.
             </Typography>
-            <Typography sx={{ mt: 2.5, maxWidth: 610, color: 'rgba(255,255,255,0.82)', fontSize: { xs: 17, md: 20 }, lineHeight: 1.65 }}>
+            <Typography sx={{ mt: 2.5, maxWidth: 560, color: '#526179', fontSize: { xs: 17, md: 20 }, lineHeight: 1.65 }}>
               Publish roles, collect resumes, and surface the best-fit applicants with clear ATS scoring.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4, maxWidth: 620 }}>
               <Button component={Link} to="/register" size="large" variant="contained" sx={{ bgcolor: '#f59e0b', backgroundImage: 'none', color: '#102033', '&:hover': { bgcolor: '#fbbf24' } }}>
                 Start hiring
               </Button>
-              <Button size="large" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.42)', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.1)' } }}>
+              <Button size="large" variant="outlined" sx={{ color: '#0f4657', borderColor: 'rgba(15,70,87,0.32)', bgcolor: 'rgba(255,255,255,0.62)', '&:hover': { borderColor: '#0f4657', bgcolor: 'rgba(255,255,255,0.86)' } }}>
                 Browse roles
               </Button>
             </Stack>
+            </Box>
           </Grid>
           <Grid item xs={12} md={5.8}>
             <Box sx={{ position: 'relative', minHeight: { xs: 280, md: 420 } }}>
