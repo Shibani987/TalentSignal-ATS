@@ -33,7 +33,6 @@ async function uploadToCloudinary({ key, buffer, contentType }) {
   const publicId = cloudinaryPublicId(key);
   const params = {
     public_id: publicId,
-    resource_type: 'raw',
     timestamp
   };
   const form = new FormData();
@@ -62,6 +61,10 @@ async function uploadToCloudinary({ key, buffer, contentType }) {
 export async function uploadPrivateFile({ key, buffer, contentType }) {
   if (storageProvider === 'cloudinary' && hasCloudinary) {
     return uploadToCloudinary({ key, buffer, contentType });
+  }
+
+  if (storageProvider === 'cloudinary' && !hasCloudinary) {
+    throw new Error('Cloudinary storage is selected but CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET is missing.');
   }
 
   if (storageProvider !== 's3' || !hasS3) {
