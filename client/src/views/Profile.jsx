@@ -1,23 +1,25 @@
 import React from 'react';
 import { Alert, Box, Button, Card, CardContent, Chip, Grid, LinearProgress, Stack, TextField, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useMutation } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { api, errorMessage } from '../api/client.js';
 import { useAuth } from '../state/AuthContext.jsx';
 import { PageHero } from '../ui/PageSurfaces.jsx';
 
-function firstItem(items, fallback) {
-  return items?.[0] || fallback;
+const emptyExperience = { title: '', company: '', years: '', summary: '' };
+const emptyEducation = { school: '', degree: '', startYear: '', endYear: '' };
+
+function initialList(items, fallback) {
+  return items?.length ? items.map((item) => ({ ...fallback, ...item })) : [{ ...fallback }];
 }
 
 export function Profile() {
   const { user, refresh } = useAuth();
   const profile = user.applicantProfile || {};
-  const firstExperience = useMemo(() => firstItem(profile.experience, { title: '', company: '', years: '', summary: '' }), [profile.experience]);
-  const firstEducation = useMemo(() => firstItem(profile.education, { school: '', degree: '', startYear: '', endYear: '' }), [profile.education]);
-
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [company, setCompany] = useState({
@@ -29,17 +31,19 @@ export function Profile() {
   const [applicant, setApplicant] = useState({
     phone: profile.phone || '',
     location: profile.location || '',
-    skills: profile.skills?.join(', ') || '',
-    experienceTitle: firstExperience.title || '',
-    experienceCompany: firstExperience.company || '',
-    experienceYears: firstExperience.years || '',
-    experienceSummary: firstExperience.summary || '',
-    educationSchool: firstEducation.school || '',
-    educationDegree: firstEducation.degree || '',
-    educationStartYear: firstEducation.startYear || '',
-    educationEndYear: firstEducation.endYear || ''
+    skills: profile.skills?.join(', ') || ''
   });
+  const [experiences, setExperiences] = useState(() => initialList(profile.experience, emptyExperience));
+  const [educations, setEducations] = useState(() => initialList(profile.education, emptyEducation));
   const [resume, setResume] = useState(null);
+
+  const updateExperience = (index, patch) => {
+    setExperiences((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  };
+
+  const updateEducation = (index, patch) => {
+    setEducations((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  };
 
   const saveProfile = useMutation({
     mutationFn: async () => {
@@ -53,18 +57,12 @@ export function Profile() {
               phone: applicant.phone,
               location: applicant.location,
               skills: applicant.skills.split(',').map((skill) => skill.trim()).filter(Boolean),
-              experience: [{
-                title: applicant.experienceTitle,
-                company: applicant.experienceCompany,
-                years: Number(applicant.experienceYears || 0),
-                summary: applicant.experienceSummary
-              }].filter((item) => item.title || item.company || item.summary),
-              education: [{
-                school: applicant.educationSchool,
-                degree: applicant.educationDegree,
-                startYear: Number(applicant.educationStartYear || 0),
-                endYear: Number(applicant.educationEndYear || 0)
-              }].filter((item) => item.school || item.degree)
+              experience: experiences
+                .map((item) => ({ ...item, years: Number(item.years || 0) }))
+                .filter((item) => item.title || item.company || item.summary),
+              education: educations
+                .map((item) => ({ ...item, startYear: Number(item.startYear || 0), endYear: Number(item.endYear || 0) }))
+                .filter((item) => item.school || item.degree)
             }
           };
       return (await api.put('/users/me', payload)).data;
@@ -133,39 +131,73 @@ export function Profile() {
                     <TextField label="Skills" helperText="Comma separated" value={applicant.skills} onChange={(event) => setApplicant({ ...applicant, skills: event.target.value })} />
 
                     <Box>
-                      <Typography variant="h6" gutterBottom>Experience</Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={4}>
-                          <TextField fullWidth label="Title" value={applicant.experienceTitle} onChange={(event) => setApplicant({ ...applicant, experienceTitle: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <TextField fullWidth label="Company" value={applicant.experienceCompany} onChange={(event) => setApplicant({ ...applicant, experienceCompany: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <TextField fullWidth label="Years" type="number" value={applicant.experienceYears} onChange={(event) => setApplicant({ ...applicant, experienceYears: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField fullWidth label="Experience summary" multiline minRows={3} value={applicant.experienceSummary} onChange={(event) => setApplicant({ ...applicant, experienceSummary: event.target.value })} />
-                        </Grid>
-                      </Grid>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography variant="h6">Experience</Typography>
+                        <Button size="small" startIcon={<AddIcon />} onClick={() => setExperiences((items) => [...items, { ...emptyExperience }])}>Add experience</Button>
+                      </Stack>
+                      <Stack spacing={2}>
+                        {experiences.map((experience, index) => (
+                          <Box key={`experience-${index}`} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, bgcolor: 'rgba(255,255,255,0.58)' }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2">Experience {index + 1}</Typography>
+                              {experiences.length > 1 && (
+                                <Button size="small" color="error" startIcon={<RemoveCircleOutlineIcon />} onClick={() => setExperiences((items) => items.filter((_, itemIndex) => itemIndex !== index))}>
+                                  Remove
+                                </Button>
+                              )}
+                            </Stack>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={4}>
+                                <TextField fullWidth label="Title" value={experience.title} onChange={(event) => updateExperience(index, { title: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12} md={4}>
+                                <TextField fullWidth label="Company" value={experience.company} onChange={(event) => updateExperience(index, { company: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12} md={4}>
+                                <TextField fullWidth label="Years" type="number" value={experience.years} onChange={(event) => updateExperience(index, { years: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField fullWidth label="Experience summary" multiline minRows={3} value={experience.summary} onChange={(event) => updateExperience(index, { summary: event.target.value })} />
+                              </Grid>
+                            </Grid>
+                          </Box>
+                        ))}
+                      </Stack>
                     </Box>
 
                     <Box>
-                      <Typography variant="h6" gutterBottom>Education</Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                          <TextField fullWidth label="School" value={applicant.educationSchool} onChange={(event) => setApplicant({ ...applicant, educationSchool: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField fullWidth label="Degree" value={applicant.educationDegree} onChange={(event) => setApplicant({ ...applicant, educationDegree: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField fullWidth label="Start year" type="number" value={applicant.educationStartYear} onChange={(event) => setApplicant({ ...applicant, educationStartYear: event.target.value })} />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField fullWidth label="End year" type="number" value={applicant.educationEndYear} onChange={(event) => setApplicant({ ...applicant, educationEndYear: event.target.value })} />
-                        </Grid>
-                      </Grid>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography variant="h6">Education</Typography>
+                        <Button size="small" startIcon={<AddIcon />} onClick={() => setEducations((items) => [...items, { ...emptyEducation }])}>Add education</Button>
+                      </Stack>
+                      <Stack spacing={2}>
+                        {educations.map((education, index) => (
+                          <Box key={`education-${index}`} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, bgcolor: 'rgba(255,255,255,0.58)' }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2">Education {index + 1}</Typography>
+                              {educations.length > 1 && (
+                                <Button size="small" color="error" startIcon={<RemoveCircleOutlineIcon />} onClick={() => setEducations((items) => items.filter((_, itemIndex) => itemIndex !== index))}>
+                                  Remove
+                                </Button>
+                              )}
+                            </Stack>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="School" value={education.school} onChange={(event) => updateEducation(index, { school: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="Degree" value={education.degree} onChange={(event) => updateEducation(index, { degree: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="Start year" type="number" value={education.startYear} onChange={(event) => updateEducation(index, { startYear: event.target.value })} />
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="End year" type="number" value={education.endYear} onChange={(event) => updateEducation(index, { endYear: event.target.value })} />
+                              </Grid>
+                            </Grid>
+                          </Box>
+                        ))}
+                      </Stack>
                     </Box>
                   </>
                 )}

@@ -162,6 +162,19 @@ function demoProfileAnalysis(resumeText, profile) {
   const hasProjectEvidence = lower.includes('project') || lower.includes('built') || lower.includes('developed') || lower.includes('created') || lower.includes('implemented');
   const hasRoleClarity = lower.includes('intern') || lower.includes('developer') || lower.includes('engineer') || lower.includes('analyst') || lower.includes('designer');
   const hasEducation = lower.includes('education') || lower.includes('degree') || lower.includes('university') || lower.includes('college') || lower.includes('b.tech') || lower.includes('bca') || lower.includes('mca');
+  const vagueSignals = [
+    'hardworking person',
+    'any it job',
+    'any work',
+    'fast learner',
+    'learn new things',
+    'some website tasks',
+    'many things',
+    'looks nice',
+    'good job'
+  ].filter((phrase) => lower.includes(phrase));
+  const hasPortfolioSignals = lower.includes('github') || lower.includes('portfolio') || lower.includes('linkedin') || lower.includes('live') || lower.includes('deployed');
+  const hasActionVerbs = ['built', 'developed', 'implemented', 'designed', 'optimized', 'integrated', 'created', 'led'].some((word) => lower.includes(word));
   const checks = [
     lower.includes('experience') || hasRoleClarity,
     hasProjectEvidence,
@@ -170,7 +183,15 @@ function demoProfileAnalysis(resumeText, profile) {
     hasEducation,
     hasContact
   ];
-  const score = 42 + checks.filter(Boolean).length * 9 + Math.min(12, technicalMatches.length * 2);
+  const positiveScore = checks.filter(Boolean).length * 8
+    + Math.min(14, technicalMatches.length * 2)
+    + (hasActionVerbs ? 6 : 0)
+    + (hasPortfolioSignals ? 5 : 0);
+  const penalty = (hasNumbers ? 0 : 9)
+    + (resumeText.length >= 900 ? 0 : 8)
+    + Math.min(14, vagueSignals.length * 4)
+    + (technicalMatches.length >= 3 ? 0 : 7);
+  const score = 38 + positiveScore - penalty;
   const strengths = [];
   const improvements = [];
 
@@ -183,6 +204,10 @@ function demoProfileAnalysis(resumeText, profile) {
 
   if (!hasNumbers) improvements.push('Add measurable impact to 2-3 bullets, such as users served, percentage improvement, project count, performance gains, or timeline.');
   if (!hasProjectEvidence) improvements.push('Add concrete project bullets explaining what you built, which tools you used, and the result.');
+  if (!hasActionVerbs) improvements.push('Rewrite weak bullets with action verbs such as built, developed, implemented, optimized, or integrated.');
+  if (vagueSignals.length) improvements.push('Replace generic statements like "hardworking", "any IT job", or "learn new things" with specific role goals, tools, and achievements.');
+  if (technicalMatches.length < 3) improvements.push('Add stronger technical keywords that match the target role, such as React, JavaScript, Node.js, APIs, database, Git, or deployment tools.');
+  if (!hasPortfolioSignals) improvements.push('Add GitHub, portfolio, LinkedIn, or deployed project links so recruiters can verify work.');
   if (!profileMatches.length && (profile?.skills || []).length) improvements.push('Mirror your strongest profile skills directly in the resume so ATS keyword matching can detect them.');
   if (!hasEducation) improvements.push('Add education, degree, college/university, or certification details if they are relevant.');
   if (!hasRoleClarity) improvements.push('Make the target role clearer in the headline or summary, for example Frontend Developer, Full Stack Developer, or Data Analyst.');
@@ -195,7 +220,7 @@ function demoProfileAnalysis(resumeText, profile) {
       'Resume is strong overall. Tailor the top skills and 2-3 achievement bullets for each job before applying.',
       'Add role-specific keywords from the job description near the summary, skills, and project sections.'
     ],
-    summary: `TalentSignal analyzed the resume for ATS readability, keyword coverage, project evidence, measurable impact, and recruiter clarity. ${technicalMatches.length ? `Strong keyword coverage was found around ${technicalMatches.slice(0, 5).join(', ')}.` : 'Add more role-specific technical keywords to improve matching.'}`
+    summary: `TalentSignal analyzed the resume for ATS readability, keyword coverage, project evidence, measurable impact, and recruiter clarity. ${vagueSignals.length ? 'The resume currently reads too generic for strong ATS matching and needs more specific project evidence.' : technicalMatches.length ? `Keyword coverage was found around ${technicalMatches.slice(0, 5).join(', ')}.` : 'Add more role-specific technical keywords to improve matching.'}`
   });
 }
 
