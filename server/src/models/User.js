@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema({
       key: String,
       fileName: String,
       mimeType: String,
+      size: Number,
       uploadedAt: Date,
       extractedText: String
     },

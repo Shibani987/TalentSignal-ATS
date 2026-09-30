@@ -36,13 +36,14 @@ usersRouter.put('/me/resume', requireAuth, requireRole('applicant'), resumeUploa
   }
   const resumeText = await extractResumeText(req.file);
   const key = `profile-resumes/${req.user._id}/${randomUUID()}-${req.file.originalname}`;
-  await uploadPrivateFile({ key, buffer: req.file.buffer, contentType: req.file.mimetype });
+  const stored = await uploadPrivateFile({ key, buffer: req.file.buffer, contentType: req.file.mimetype });
   req.user.applicantProfile = {
     ...(req.user.applicantProfile || {}),
     resume: {
-      key,
+      key: stored.key,
       fileName: req.file.originalname,
       mimeType: req.file.mimetype,
+      size: req.file.size,
       uploadedAt: new Date(),
       extractedText: resumeText
     },

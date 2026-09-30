@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Box, Button, Card, CardContent, Chip, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, FormControlLabel, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -12,6 +12,7 @@ export function JobDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const [resume, setResume] = useState(null);
+  const [resumeSource, setResumeSource] = useState('profile');
   const [coverLetter, setCoverLetter] = useState('');
   const { data, isLoading, isError, error } = useQuery({ queryKey: ['job', id], queryFn: async () => (await api.get(`/jobs/${id}`)).data });
   const apply = useMutation({
@@ -19,13 +20,18 @@ export function JobDetail() {
       const form = new FormData();
       form.append('jobId', id);
       form.append('coverLetter', coverLetter);
-      form.append('resume', resume);
+      form.append('useProfileResume', resumeSource === 'profile' ? 'true' : 'false');
+      if (resumeSource === 'upload') form.append('resume', resume);
       return (await api.post('/applications', form)).data;
     }
   });
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState message={errorMessage(error)} />;
   const job = data.job;
+  const profileResume = user?.applicantProfile?.resume;
+  const canUseProfileResume = Boolean(profileResume?.key);
+  const needsUpload = resumeSource === 'upload' && !resume;
+  const needsProfileResume = resumeSource === 'profile' && !canUseProfileResume;
   return (
     <Stack spacing={3}>
       <Card><CardContent sx={{ p: { xs: 3, md: 5 } }}>
@@ -44,8 +50,26 @@ export function JobDetail() {
             {apply.isSuccess && <Alert severity="success">Application submitted. Resume analysis has started.</Alert>}
             {apply.isError && <Alert severity="error">{errorMessage(apply.error)}</Alert>}
             <TextField label="Cover letter" multiline minRows={4} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} />
-            <Button component="label" variant="outlined" startIcon={<UploadFileIcon />}>{resume ? resume.name : 'Upload PDF or DOCX'}<input hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setResume(e.target.files[0])} /></Button>
-            <Button variant="contained" disabled={!resume || apply.isPending} onClick={() => apply.mutate()}>Submit application</Button>
+            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, bgcolor: 'rgba(255,255,255,0.62)' }}>
+              <Typography variant="subtitle2" gutterBottom>Resume for this application</Typography>
+              <RadioGroup value={resumeSource} onChange={(event) => setResumeSource(event.target.value)}>
+                <FormControlLabel
+                  value="profile"
+                  control={<Radio />}
+                  label={canUseProfileResume ? `Use saved profile resume (${profileResume.fileName})` : 'Use saved profile resume'}
+                  disabled={!canUseProfileResume}
+                />
+                <FormControlLabel value="upload" control={<Radio />} label="Upload a different resume for this job" />
+              </RadioGroup>
+              {!canUseProfileResume && <Alert severity="info" sx={{ mt: 1 }}>Upload a profile resume first, or choose a new resume for this application.</Alert>}
+            </Box>
+            {resumeSource === 'upload' && (
+              <Button component="label" variant="outlined" startIcon={<UploadFileIcon />}>
+                {resume ? resume.name : 'Upload PDF or DOCX'}
+                <input hidden type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setResume(e.target.files[0])} />
+              </Button>
+            )}
+            <Button variant="contained" disabled={needsUpload || needsProfileResume || apply.isPending} onClick={() => apply.mutate()}>Submit application</Button>
           </Stack>
         </CardContent></Card>
       ) : (

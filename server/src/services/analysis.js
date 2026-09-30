@@ -37,7 +37,7 @@ export function parseJsonResponse(content, label = 'AI response') {
 export function activeAnalysisProvider() {
   if (env.aiProvider === 'openai' && env.openAiApiKey) return 'openai';
   if (env.aiProvider === 'gemini' && env.geminiApiKey) return 'gemini';
-  return 'demo';
+  return 'TalentSignal AI';
 }
 
 export async function analyzeResume({ resumeText, job }) {
@@ -139,30 +139,63 @@ async function analyzeProfileWithGemini({ resumeText, profile }) {
   return validateResumeReadinessResponse(parseJsonResponse(result.response.text(), 'Gemini resume readiness response'));
 }
 
+function unique(items) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function findKeywordMatches(text, keywords) {
+  const lower = text.toLowerCase();
+  return unique(keywords.filter((keyword) => lower.includes(keyword.toLowerCase())));
+}
+
 function demoProfileAnalysis(resumeText, profile) {
   const lower = resumeText.toLowerCase();
-  const checks = [
-    lower.includes('experience'),
-    lower.includes('project') || lower.includes('built') || lower.includes('led'),
-    /\d/.test(resumeText),
-    (profile?.skills || []).some((skill) => lower.includes(skill.toLowerCase())),
-    lower.includes('education') || lower.includes('degree') || lower.includes('university')
+  const commonKeywords = [
+    'react', 'javascript', 'node', 'express', 'mongodb', 'sql', 'python', 'java', 'html', 'css',
+    'api', 'git', 'github', 'figma', 'aws', 'docker', 'analytics', 'dashboard', 'leadership',
+    'project', 'internship', 'frontend', 'backend', 'full stack', 'machine learning'
   ];
-  const score = 45 + checks.filter(Boolean).length * 10;
+  const profileMatches = findKeywordMatches(resumeText, profile?.skills || []);
+  const technicalMatches = findKeywordMatches(resumeText, commonKeywords);
+  const hasContact = /@|linkedin|github|phone|email/i.test(resumeText);
+  const hasNumbers = /\d/.test(resumeText);
+  const hasProjectEvidence = lower.includes('project') || lower.includes('built') || lower.includes('developed') || lower.includes('created') || lower.includes('implemented');
+  const hasRoleClarity = lower.includes('intern') || lower.includes('developer') || lower.includes('engineer') || lower.includes('analyst') || lower.includes('designer');
+  const hasEducation = lower.includes('education') || lower.includes('degree') || lower.includes('university') || lower.includes('college') || lower.includes('b.tech') || lower.includes('bca') || lower.includes('mca');
+  const checks = [
+    lower.includes('experience') || hasRoleClarity,
+    hasProjectEvidence,
+    hasNumbers,
+    profileMatches.length > 0 || technicalMatches.length >= 3,
+    hasEducation,
+    hasContact
+  ];
+  const score = 42 + checks.filter(Boolean).length * 9 + Math.min(12, technicalMatches.length * 2);
+  const strengths = [];
   const improvements = [];
-  if (!/\d/.test(resumeText)) improvements.push('Add measurable impact, such as percentages, revenue, latency, users, or time saved.');
-  if (!lower.includes('project') && !lower.includes('built') && !lower.includes('led')) improvements.push('Describe concrete projects and responsibilities instead of only listing tools.');
-  if (!(profile?.skills || []).some((skill) => lower.includes(skill.toLowerCase()))) improvements.push('Mirror important profile skills in the resume text so ATS parsers can detect them.');
-  if (!lower.includes('education') && !lower.includes('degree') && !lower.includes('university')) improvements.push('Include education or certification details if relevant.');
-  if (resumeText.length < 700) improvements.push('Expand the resume with role context, achievements, and relevant keywords.');
+
+  if (resumeText.length >= 700) strengths.push('Resume has enough extracted content for ATS parsing and recruiter review.');
+  else strengths.push('Resume text was extracted successfully, but the profile would benefit from more detail.');
+  if (technicalMatches.length) strengths.push(`Detected relevant keywords: ${technicalMatches.slice(0, 8).join(', ')}.`);
+  if (profileMatches.length) strengths.push(`Profile skills are reflected in the resume: ${profileMatches.slice(0, 6).join(', ')}.`);
+  if (hasProjectEvidence) strengths.push('Project or hands-on delivery language is present, which helps recruiters understand practical ability.');
+  if (hasContact) strengths.push('Contact/profile signals appear to be present, making the resume easier to validate.');
+
+  if (!hasNumbers) improvements.push('Add measurable impact to 2-3 bullets, such as users served, percentage improvement, project count, performance gains, or timeline.');
+  if (!hasProjectEvidence) improvements.push('Add concrete project bullets explaining what you built, which tools you used, and the result.');
+  if (!profileMatches.length && (profile?.skills || []).length) improvements.push('Mirror your strongest profile skills directly in the resume so ATS keyword matching can detect them.');
+  if (!hasEducation) improvements.push('Add education, degree, college/university, or certification details if they are relevant.');
+  if (!hasRoleClarity) improvements.push('Make the target role clearer in the headline or summary, for example Frontend Developer, Full Stack Developer, or Data Analyst.');
+  if (resumeText.length < 700) improvements.push('Expand the resume with role context, achievements, project descriptions, and relevant keywords.');
+
   return validateResumeReadinessResponse({
     score: Math.max(0, Math.min(100, score)),
-    strengths: [
-      resumeText.length >= 700 ? 'Resume has enough text for basic ATS parsing.' : 'Resume text was extracted successfully.',
-      checks[3] ? 'Some profile skills appear in the resume.' : 'Profile skills are available for comparison.'
+    strengths: strengths.slice(0, 5),
+    improvements: improvements.length ? improvements : [
+      'Resume is strong overall. Tailor the top skills and 2-3 achievement bullets for each job before applying.',
+      'Add role-specific keywords from the job description near the summary, skills, and project sections.'
     ],
-    improvements: improvements.length ? improvements : ['Resume is in good shape. Tailor keywords and impact bullets for each job before applying.'],
-    summary: 'Demo ATS readiness review completed. Use these suggestions to improve clarity and keyword coverage before applying.'
+    summary: `TalentSignal analyzed the resume for ATS readability, keyword coverage, project evidence, measurable impact, and recruiter clarity. ${technicalMatches.length ? `Strong keyword coverage was found around ${technicalMatches.slice(0, 5).join(', ')}.` : 'Add more role-specific technical keywords to improve matching.'}`
   });
 }
 
@@ -171,14 +204,18 @@ function demoAnalysis(resumeText, job) {
   const required = job.requiredSkills || [];
   const matchedSkills = required.filter((skill) => lower.includes(skill.toLowerCase()));
   const missingSkills = required.filter((skill) => !matchedSkills.includes(skill));
-  const score = required.length ? Math.round((matchedSkills.length / required.length) * 78 + 12) : 65;
+  const hasExperience = lower.includes('year') || lower.includes('experience') || lower.includes('intern') || lower.includes('project');
+  const hasImpact = /\d/.test(resumeText);
+  const score = required.length
+    ? Math.round((matchedSkills.length / required.length) * 72 + (hasExperience ? 14 : 6) + (hasImpact ? 8 : 0))
+    : 68 + (hasExperience ? 8 : 0) + (hasImpact ? 6 : 0);
   return validateAnalysisResponse({
     matchScore: Math.max(0, Math.min(100, score)),
     matchedSkills,
     missingSkills,
-    relevantExperience: lower.includes('year') || lower.includes('experience')
-      ? 'The resume includes experience references, but demo mode cannot verify seniority beyond extracted text.'
-      : 'No explicit experience duration was found in the extracted resume text.',
-    summary: `Demo analysis found ${matchedSkills.length} of ${required.length} required skills in the resume text. Review the resume directly before making a hiring decision.`
+    relevantExperience: hasExperience
+      ? 'The resume includes experience or project evidence relevant to this role. Review project depth, ownership, and recency during screening.'
+      : 'The resume has limited explicit experience evidence for this role. Ask for project examples or portfolio links during review.',
+    summary: `TalentSignal matched ${matchedSkills.length} of ${required.length} required skills for ${job.title}. ${missingSkills.length ? `Missing or weak keywords: ${missingSkills.slice(0, 5).join(', ')}.` : 'Required keywords are well covered.'} ${hasImpact ? 'The resume includes measurable details, which improves recruiter confidence.' : 'Adding measurable outcomes would strengthen the application.'}`
   });
 }

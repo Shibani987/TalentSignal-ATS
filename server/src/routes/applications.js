@@ -32,20 +32,40 @@ async function runAnalysis(applicationId) {
 }
 
 applicationsRouter.post('/', requireAuth, requireRole('applicant'), resumeUpload.single('resume'), asyncHandler(async (req, res) => {
-  if (!req.file) throw new AppError('Resume file is required', 400);
+  const useProfileResume = req.body.useProfileResume === 'true' || req.body.useProfileResume === true;
   const job = await Job.findById(req.body.jobId);
   if (!job || job.status !== 'published') throw new AppError('This job is not accepting applications', 400);
   const duplicate = await Application.findOne({ job: job._id, applicant: req.user._id });
   if (duplicate) throw new AppError('You have already applied for this job', 409);
-  const resumeText = await extractResumeText(req.file);
-  const key = `resumes/${req.user._id}/${randomUUID()}-${req.file.originalname}`;
-  await uploadPrivateFile({ key, buffer: req.file.buffer, contentType: req.file.mimetype });
+  let resumeText;
+  let resumeMeta;
+
+  if (useProfileResume) {
+    const profileResume = req.user.applicantProfile?.resume;
+    if (!profileResume?.key || !profileResume?.extractedText) {
+      throw new AppError('Upload a profile resume before applying with saved resume', 400);
+    }
+    resumeText = profileResume.extractedText;
+    resumeMeta = {
+      key: profileResume.key,
+      fileName: profileResume.fileName,
+      mimeType: profileResume.mimeType,
+      size: profileResume.size || 0
+    };
+  } else {
+    if (!req.file) throw new AppError('Resume file is required', 400);
+    resumeText = await extractResumeText(req.file);
+    const key = `resumes/${req.user._id}/${randomUUID()}-${req.file.originalname}`;
+    const stored = await uploadPrivateFile({ key, buffer: req.file.buffer, contentType: req.file.mimetype });
+    resumeMeta = { key: stored.key, fileName: req.file.originalname, mimeType: req.file.mimetype, size: req.file.size };
+  }
+
   const application = await Application.create({
     job: job._id,
     applicant: req.user._id,
     recruiter: job.recruiter,
     coverLetter: req.body.coverLetter,
-    resume: { key, fileName: req.file.originalname, mimeType: req.file.mimetype, size: req.file.size },
+    resume: resumeMeta,
     resumeText,
     statusHistory: [{ status: 'Applied', changedBy: req.user._id, note: 'Application submitted' }],
     analysis: { status: 'pending' }
