@@ -10,6 +10,57 @@ a {
 .page-shell {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(251,250,247,0.96)),
-    radial-gradient(circle at top right, rgba(48,79,254,0.08), transparent 34%);
+    linear-gradient(180deg, rgba(246,248,251,0.9), rgba(236,244,242,0.96)),
+    radial-gradient(circle at 8% 12%, rgba(249,115,22,0.14), transparent 26%),
+    radial-gradient(circle at 88% 4%, rgba(15,159,110,0.16), transparent 30%),
+    radial-gradient(circle at 52% 0%, rgba(21,94,117,0.12), transparent 38%);
+  color: #102033;
+  overflow-x: hidden;
+}
+
+.page-content {
+  animation: page-enter 420ms ease both;
+}
+
+.interactive-card:hover {
+  border-color: rgba(21, 94, 117, 0.32);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+  transform: translateY(-3px);
+}
+
+.soft-pulse {
+  animation: soft-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-pulse {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content,
+  .soft-pulse {
+    animation: none;
+  }
+
+  .interactive-card:hover {
+    transform: none;
+  }
 }
