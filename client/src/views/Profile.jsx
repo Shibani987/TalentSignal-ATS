@@ -1,10 +1,12 @@
 import React from 'react';
 import { Alert, Box, Button, Card, CardContent, Chip, Grid, LinearProgress, Stack, TextField, Typography } from '@mui/material';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useMutation } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { api, errorMessage } from '../api/client.js';
 import { useAuth } from '../state/AuthContext.jsx';
+import { PageHero } from '../ui/PageSurfaces.jsx';
 
 function firstItem(items, fallback) {
   return items?.[0] || fallback;
@@ -86,14 +88,21 @@ export function Profile() {
     <Grid container spacing={3} justifyContent="center">
       <Grid item xs={12} lg={8}>
         <Stack spacing={3}>
-          <Card>
-            <CardContent sx={{ p: 4 }}>
-              <Typography variant="h4" gutterBottom>Profile</Typography>
-              <Typography color="text.secondary">
-                Keep your account and candidate details updated. Applicants can maintain a reusable resume here and still upload a role-specific resume while applying.
-              </Typography>
-            </CardContent>
-          </Card>
+          <PageHero
+            eyebrow={user.role === 'recruiter' ? 'Recruiter profile' : 'Candidate profile'}
+            title="Keep your hiring identity sharp."
+            body="Update account details, profile context, and resume signals used across TalentSignal ATS."
+            icon={<ManageAccountsIcon />}
+            tone={user.role === 'recruiter' ? 'blue' : 'teal'}
+          >
+            <Card className="float-card" sx={{ width: { xs: '100%', md: 280 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography variant="subtitle2" color="text.secondary">Signed in as</Typography>
+                <Typography variant="h5" color="text.primary">{user.name}</Typography>
+                <Chip sx={{ mt: 1 }} size="small" label={user.role} color="primary" variant="outlined" />
+              </CardContent>
+            </Card>
+          </PageHero>
 
           <Card>
             <CardContent sx={{ p: 4 }}>
@@ -179,7 +188,7 @@ export function Profile() {
                     Current resume: {user.applicantProfile?.resume?.fileName || 'No profile resume uploaded yet'}
                   </Typography>
                   {user.applicantProfile?.resumeAnalysis?.status === 'succeeded' && (
-                    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
+                    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, bgcolor: 'rgba(255,255,255,0.62)' }}>
                       <Stack spacing={1.5}>
                         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
                           <Typography variant="h6">ATS resume score</Typography>
