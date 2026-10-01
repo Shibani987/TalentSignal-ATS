@@ -47,6 +47,17 @@ test('prevents applicants from creating jobs', async () => {
   assert.equal(res.status, 403);
 });
 
+test('returns the current user for a valid token', async () => {
+  const applicant = await register('applicant', 'me@test.com');
+  const res = await request(app)
+    .get('/api/users/me')
+    .set('Authorization', `Bearer ${applicant.token}`)
+    .expect(200);
+  assert.equal(res.body.user.email, 'me@test.com');
+  assert.equal(res.body.user.role, 'applicant');
+  assert.equal(res.body.user.passwordHash, undefined);
+});
+
 test('allows recruiter job creation and public listing', async () => {
   const recruiter = await register('recruiter', 'recruiter@test.com');
   const created = await request(app)
