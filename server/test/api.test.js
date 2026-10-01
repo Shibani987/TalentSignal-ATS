@@ -84,3 +84,46 @@ test('allows recruiter job creation and public listing', async () => {
   const listed = await request(app).get('/api/jobs/public');
   assert.equal(listed.body.total, 1);
 });
+
+test('filters public jobs by work mode and employment type', async () => {
+  const recruiter = await register('recruiter', 'filters@test.com');
+  const jobs = [
+    {
+      title: 'Remote Backend Engineer',
+      company: 'Demo Co',
+      location: 'Remote',
+      workMode: 'remote',
+      employmentType: 'full-time',
+      description: 'Build reliable APIs for recruiting workflows.',
+      experienceRequirements: '3 years',
+      requiredSkills: ['Node.js']
+    },
+    {
+      title: 'Onsite Design Intern',
+      company: 'Demo Co',
+      location: 'Kolkata',
+      workMode: 'onsite',
+      employmentType: 'internship',
+      description: 'Support hiring product design and research workflows.',
+      experienceRequirements: '0-1 years',
+      requiredSkills: ['Figma']
+    }
+  ];
+
+  for (const job of jobs) {
+    const created = await request(app)
+      .post('/api/jobs')
+      .set('Authorization', `Bearer ${recruiter.token}`)
+      .send(job)
+      .expect(201);
+    await request(app)
+      .patch(`/api/jobs/${created.body.job._id}/status`)
+      .set('Authorization', `Bearer ${recruiter.token}`)
+      .send({ status: 'published' })
+      .expect(200);
+  }
+
+  const listed = await request(app).get('/api/jobs/public?workMode=remote&employmentType=full-time').expect(200);
+  assert.equal(listed.body.total, 1);
+  assert.equal(listed.body.items[0].title, 'Remote Backend Engineer');
+});
