@@ -24,6 +24,14 @@ test.afterEach(async () => {
   await mongoose.connection.db.dropDatabase();
 });
 
+test('reports API health and demo flags', async () => {
+  const res = await request(app).get('/api/health').expect(200);
+  assert.equal(res.body.ok, true);
+  assert.equal(typeof res.body.demo.ai, 'boolean');
+  assert.equal(typeof res.body.demo.storage, 'boolean');
+  assert.equal(typeof res.body.demo.email, 'boolean');
+});
+
 async function register(role, email) {
   const res = await request(app).post('/api/auth/register').send({ name: `${role} User`, email, password: 'Password123!', role, companyName: 'Demo Co' });
   assert.equal(res.status, 201);
