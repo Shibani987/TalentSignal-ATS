@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Box, Button, Container, Stack, Toolbar, Typography } from '@mui/material';
+import { AppBar, Avatar, Box, Button, Chip, Container, Stack, Toolbar, Typography } from '@mui/material';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ export function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const dashboard = user?.role === 'recruiter' ? '/recruiter' : '/applicant';
+  const userInitial = user?.name?.trim()?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase();
   return (
     <Box className="page-shell">
       <AppBar
@@ -52,6 +53,23 @@ export function AppLayout() {
             {user?.role === 'recruiter' && <Button component={Link} to="/recruiter/candidates">Candidates</Button>}
             {user && <Button component={Link} to={dashboard}>Dashboard</Button>}
             {user && <Button component={Link} to="/profile">Profile</Button>}
+            {user && (
+              <Chip
+                avatar={<Avatar>{userInitial}</Avatar>}
+                label={`${user.name || user.email} - ${user.role}`}
+                variant="outlined"
+                sx={{
+                  alignSelf: 'center',
+                  maxWidth: { xs: 210, sm: 280 },
+                  bgcolor: 'rgba(255,255,255,0.7)',
+                  '& .MuiChip-label': {
+                    display: 'block',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }
+                }}
+              />
+            )}
             {user ? (
               <Button startIcon={<LogoutIcon />} onClick={() => { logout(); navigate('/'); }}>Sign out</Button>
             ) : (
