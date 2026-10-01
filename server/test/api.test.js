@@ -58,6 +58,14 @@ test('returns the current user for a valid token', async () => {
   assert.equal(res.body.user.passwordHash, undefined);
 });
 
+test('rejects malformed bearer tokens', async () => {
+  const res = await request(app)
+    .get('/api/users/me')
+    .set('Authorization', 'Bearer not-a-real-token')
+    .expect(401);
+  assert.equal(res.body.error.message, 'Invalid or expired token');
+});
+
 test('allows recruiter job creation and public listing', async () => {
   const recruiter = await register('recruiter', 'recruiter@test.com');
   const created = await request(app)
