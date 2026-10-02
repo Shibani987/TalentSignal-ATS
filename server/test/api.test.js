@@ -58,6 +58,24 @@ test('returns the current user for a valid token', async () => {
   assert.equal(res.body.user.passwordHash, undefined);
 });
 
+test('rejects duplicate account registration', async () => {
+  await register('applicant', 'duplicate@test.com');
+  const res = await request(app)
+    .post('/api/auth/register')
+    .send({ name: 'Second User', email: 'duplicate@test.com', password: 'Password123!', role: 'applicant' })
+    .expect(409);
+  assert.equal(res.body.error.message, 'An account with this email already exists');
+});
+
+test('rejects invalid registration payloads', async () => {
+  const res = await request(app)
+    .post('/api/auth/register')
+    .send({ name: 'A', email: 'not-an-email', password: 'short', role: 'manager' })
+    .expect(400);
+  assert.equal(res.body.error.message, 'Validation failed');
+  assert.ok(res.body.error.details.length >= 4);
+});
+
 test('rejects malformed bearer tokens', async () => {
   const res = await request(app)
     .get('/api/users/me')
