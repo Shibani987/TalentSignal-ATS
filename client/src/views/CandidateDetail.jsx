@@ -9,6 +9,14 @@ import { api, errorMessage } from '../api/client.js';
 import { ErrorState, LoadingState } from '../ui/StateViews.jsx';
 import { downloadResume, recommendation } from '../utils/recommendation.js';
 
+function defaultInterviewDateTime() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(10, 0, 0, 0);
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 function toInterviewPayload(interview) {
   const startsAt = new Date(interview.startsAt);
   return {
@@ -24,7 +32,7 @@ export function CandidateDetail() {
   const qc = useQueryClient();
   const [status, setStatus] = useState('');
   const [interview, setInterview] = useState({
-    startsAt: '',
+    startsAt: defaultInterviewDateTime(),
     locationOrLink: '',
     message: 'We would like to invite you for an interview.'
   });
@@ -156,6 +164,11 @@ export function CandidateDetail() {
                 <Button startIcon={<SendIcon />} variant="outlined" disabled={!canSendInvite || invite.isPending} onClick={() => invite.mutate()}>
                   Send invite
                 </Button>
+                {!canSendInvite && (
+                  <Typography variant="caption" color="text.secondary">
+                    Add a complete date, time, meeting link, and message to send the invite.
+                  </Typography>
+                )}
               </Stack>
             </CardContent>
           </Card>
