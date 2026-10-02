@@ -17,6 +17,16 @@ test('validates a structured AI analysis response', () => {
   assert.equal(result.matchScore, 91);
 });
 
+test('fills optional analysis arrays with safe defaults', () => {
+  const result = validateAnalysisResponse({
+    matchScore: 72,
+    summary: 'Candidate has enough evidence for a partial match.'
+  });
+  assert.deepEqual(result.matchedSkills, []);
+  assert.deepEqual(result.missingSkills, []);
+  assert.equal(result.relevantExperience, '');
+});
+
 test('rejects invalid analysis scores', () => {
   assert.throws(() => validateAnalysisResponse({ matchScore: 120, summary: 'Bad' }));
 });
@@ -29,6 +39,10 @@ test('validates a structured resume readiness response', () => {
     summary: 'Strong ATS-ready resume with a few keyword gaps.'
   });
   assert.equal(result.score, 84);
+});
+
+test('rejects fractional resume readiness scores', () => {
+  assert.throws(() => validateResumeReadinessResponse({ score: 84.5, summary: 'Score must be an integer.' }));
 });
 
 test('wraps malformed model JSON with a clear error', () => {
