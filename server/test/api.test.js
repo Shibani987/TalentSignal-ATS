@@ -5,6 +5,11 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { connectDb, disconnectDb } from '../src/config/db.js';
+import { env } from '../src/config/env.js';
+import { signToken } from '../src/middleware/auth.js';
+import { Application } from '../src/models/Application.js';
+import { Job } from '../src/models/Job.js';
+import { User } from '../src/models/User.js';
 
 let mongod;
 let app;
@@ -144,4 +149,70 @@ test('filters public jobs by work mode and employment type', async () => {
   const listed = await request(app).get('/api/jobs/public?workMode=remote&employmentType=full-time').expect(200);
   assert.equal(listed.body.total, 1);
   assert.equal(listed.body.items[0].title, 'Remote Backend Engineer');
+});
+
+test('accepts browser datetime values for interview invitations', async () => {
+  const previousSmtp = {
+    host: env.smtpHost,
+    user: env.smtpUser,
+    pass: env.smtpPass
+  };
+  env.smtpHost = undefined;
+  env.smtpUser = undefined;
+  env.smtpPass = undefined;
+  const [recruiter, applicant] = await Promise.all([
+    User.create({
+      name: 'Recruiter User',
+      email: 'interviewer@test.com',
+      role: 'recruiter',
+      passwordHash: await User.hashPassword('Password123!')
+    }),
+    User.create({
+      name: 'Applicant User',
+      email: 'candidate@test.com',
+      role: 'applicant',
+      passwordHash: await User.hashPassword('Password123!')
+    })
+  ]);
+  const job = await Job.create({
+    recruiter: recruiter._id,
+    title: 'Frontend Developer',
+    company: 'Demo Co',
+    location: 'Remote',
+    description: 'Build polished candidate workflows.',
+    experienceRequirements: '1 year',
+    status: 'published'
+  });
+  const application = await Application.create({
+    job: job._id,
+    applicant: applicant._id,
+    recruiter: recruiter._id,
+    resume: {
+      key: 'resumes/demo.pdf',
+      fileName: 'demo.pdf',
+      mimeType: 'application/pdf',
+      size: 1024
+    },
+    resumeText: 'React developer with interview-ready project experience.',
+    statusHistory: [{ status: 'Applied', changedBy: applicant._id, note: 'Application submitted' }]
+  });
+
+  try {
+    const res = await request(app)
+      .post(`/api/applications/${application._id}/interview`)
+      .set('Authorization', `Bearer ${signToken(recruiter)}`)
+      .send({
+        startsAt: '2026-10-05T14:30',
+        locationOrLink: 'Google Meet',
+        message: 'We would like to discuss your resume and projects.'
+      })
+      .expect(200);
+
+    assert.equal(res.body.application.status, 'Interview');
+    assert.equal(res.body.application.interview.locationOrLink, 'Google Meet');
+  } finally {
+    env.smtpHost = previousSmtp.host;
+    env.smtpUser = previousSmtp.user;
+    env.smtpPass = previousSmtp.pass;
+  }
 });

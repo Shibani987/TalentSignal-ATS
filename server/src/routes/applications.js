@@ -158,7 +158,12 @@ applicationsRouter.post('/:id/retry-analysis', requireAuth, requireRole('recruit
 }));
 
 applicationsRouter.post('/:id/interview', requireAuth, requireRole('recruiter'), [
-  body('startsAt').isISO8601(),
+  body('startsAt')
+    .customSanitizer((value) => {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? value : date.toISOString();
+    })
+    .isISO8601(),
   body('locationOrLink').trim().isLength({ min: 3 }),
   body('message').trim().isLength({ min: 5 })
 ], validate, asyncHandler(async (req, res) => {

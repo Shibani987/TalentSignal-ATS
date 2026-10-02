@@ -9,6 +9,16 @@ import { api, errorMessage } from '../api/client.js';
 import { ErrorState, LoadingState } from '../ui/StateViews.jsx';
 import { downloadResume, recommendation } from '../utils/recommendation.js';
 
+function toInterviewPayload(interview) {
+  const startsAt = new Date(interview.startsAt);
+  return {
+    ...interview,
+    startsAt: startsAt.toISOString(),
+    locationOrLink: interview.locationOrLink.trim(),
+    message: interview.message.trim()
+  };
+}
+
 export function CandidateDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
@@ -34,7 +44,7 @@ export function CandidateDetail() {
     mutationFn: async () => downloadResume(api, id, data?.application?.resume?.fileName || 'resume')
   });
   const invite = useMutation({
-    mutationFn: async () => (await api.post(`/applications/${id}/interview`, interview)).data,
+    mutationFn: async () => (await api.post(`/applications/${id}/interview`, toInterviewPayload(interview))).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['application', id] })
   });
 
@@ -44,6 +54,10 @@ export function CandidateDetail() {
   const app = data?.application;
   if (!app) return <ErrorState message="Application data was not returned by the server." />;
   const rec = recommendation(app.analysis?.matchScore);
+  const canSendInvite = interview.startsAt
+    && !Number.isNaN(new Date(interview.startsAt).getTime())
+    && interview.locationOrLink.trim().length >= 3
+    && interview.message.trim().length >= 5;
 
   return (
     <Grid container spacing={3}>
@@ -136,10 +150,10 @@ export function CandidateDetail() {
               <Typography variant="h6" gutterBottom>Interview invitation</Typography>
               {invite.isError && <Alert severity="error">{errorMessage(invite.error)}</Alert>}
               <Stack spacing={2}>
-                <TextField type="datetime-local" value={interview.startsAt} onChange={(event) => setInterview({ ...interview, startsAt: event.target.value })} />
-                <TextField label="Location or meeting link" value={interview.locationOrLink} onChange={(event) => setInterview({ ...interview, locationOrLink: event.target.value })} />
-                <TextField label="Message" multiline minRows={4} value={interview.message} onChange={(event) => setInterview({ ...interview, message: event.target.value })} />
-                <Button startIcon={<SendIcon />} variant="outlined" disabled={invite.isPending} onClick={() => invite.mutate()}>
+                <TextField label="Date and time" type="datetime-local" value={interview.startsAt} onChange={(event) => setInterview({ ...interview, startsAt: event.target.value })} InputLabelProps={{ shrink: true }} required />
+                <TextField label="Location or meeting link" value={interview.locationOrLink} onChange={(event) => setInterview({ ...interview, locationOrLink: event.target.value })} required />
+                <TextField label="Message" multiline minRows={4} value={interview.message} onChange={(event) => setInterview({ ...interview, message: event.target.value })} required />
+                <Button startIcon={<SendIcon />} variant="outlined" disabled={!canSendInvite || invite.isPending} onClick={() => invite.mutate()}>
                   Send invite
                 </Button>
               </Stack>
