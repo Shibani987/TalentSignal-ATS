@@ -9,16 +9,34 @@ import { api, errorMessage } from '../api/client.js';
 import { ErrorState, LoadingState } from '../ui/StateViews.jsx';
 import { downloadResume, recommendation } from '../utils/recommendation.js';
 
-function defaultInterviewDateTime() {
+function defaultInterviewSchedule() {
   const date = new Date();
   date.setDate(date.getDate() + 1);
   date.setHours(10, 0, 0, 0);
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  const local = new Date(date.getTime() - offsetMs).toISOString();
+  return {
+    startsDate: local.slice(0, 10),
+    startsHour: '10',
+    startsMinute: '00',
+    meridiem: 'AM'
+  };
+}
+
+function interviewStartDate(interview) {
+  if (!interview.startsDate || !interview.startsHour || !interview.startsMinute || !interview.meridiem) return null;
+  const [year, month, day] = interview.startsDate.split('-').map(Number);
+  const hourValue = Number(interview.startsHour);
+  const minuteValue = Number(interview.startsMinute);
+  if ([year, month, day, hourValue, minuteValue].some(Number.isNaN)) return null;
+  const hour = interview.meridiem === 'PM'
+    ? (hourValue % 12) + 12
+    : hourValue % 12;
+  return new Date(year, month - 1, day, hour, minuteValue, 0, 0);
 }
 
 function toInterviewPayload(interview) {
-  const startsAt = new Date(interview.startsAt);
+  const startsAt = interviewStartDate(interview);
   return {
     ...interview,
     startsAt: startsAt.toISOString(),
@@ -32,7 +50,7 @@ export function CandidateDetail() {
   const qc = useQueryClient();
   const [status, setStatus] = useState('');
   const [interview, setInterview] = useState({
-    startsAt: defaultInterviewDateTime(),
+    ...defaultInterviewSchedule(),
     locationOrLink: '',
     message: 'We would like to invite you for an interview.'
   });
@@ -62,8 +80,9 @@ export function CandidateDetail() {
   const app = data?.application;
   if (!app) return <ErrorState message="Application data was not returned by the server." />;
   const rec = recommendation(app.analysis?.matchScore);
-  const canSendInvite = interview.startsAt
-    && !Number.isNaN(new Date(interview.startsAt).getTime())
+  const startsAt = interviewStartDate(interview);
+  const canSendInvite = startsAt
+    && !Number.isNaN(startsAt.getTime())
     && interview.locationOrLink.trim().length >= 3
     && interview.message.trim().length >= 5;
 
@@ -158,7 +177,23 @@ export function CandidateDetail() {
               <Typography variant="h6" gutterBottom>Interview invitation</Typography>
               {invite.isError && <Alert severity="error">{errorMessage(invite.error)}</Alert>}
               <Stack spacing={2}>
-                <TextField label="Date and time" type="datetime-local" value={interview.startsAt} onChange={(event) => setInterview({ ...interview, startsAt: event.target.value })} InputLabelProps={{ shrink: true }} required />
+                <TextField label="Date" type="date" value={interview.startsDate} onChange={(event) => setInterview({ ...interview, startsDate: event.target.value })} InputLabelProps={{ shrink: true }} required />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField select fullWidth label="Hour" value={interview.startsHour} onChange={(event) => setInterview({ ...interview, startsHour: event.target.value })} required>
+                    {Array.from({ length: 12 }, (_, index) => String(index + 1)).map((hour) => (
+                      <MenuItem key={hour} value={hour}>{hour}</MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField select fullWidth label="Minute" value={interview.startsMinute} onChange={(event) => setInterview({ ...interview, startsMinute: event.target.value })} required>
+                    {['00', '15', '30', '45'].map((minute) => (
+                      <MenuItem key={minute} value={minute}>{minute}</MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField select label="AM/PM" value={interview.meridiem} onChange={(event) => setInterview({ ...interview, meridiem: event.target.value })} sx={{ minWidth: 110 }} required>
+                    <MenuItem value="AM">AM</MenuItem>
+                    <MenuItem value="PM">PM</MenuItem>
+                  </TextField>
+                </Stack>
                 <TextField label="Location or meeting link" value={interview.locationOrLink} onChange={(event) => setInterview({ ...interview, locationOrLink: event.target.value })} required />
                 <TextField label="Message" multiline minRows={4} value={interview.message} onChange={(event) => setInterview({ ...interview, message: event.target.value })} required />
                 <Button startIcon={<SendIcon />} variant="outlined" disabled={!canSendInvite || invite.isPending} onClick={() => invite.mutate()}>
