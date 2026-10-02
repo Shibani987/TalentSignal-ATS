@@ -60,6 +60,14 @@ npm run build
 
 The test suite uses an in-memory MongoDB instance, so it does not require a local database. The frontend build validates that the applicant and recruiter workspaces compile with the current API client and routing setup.
 
+## Verification Matrix
+
+- API smoke: `/api/health` reports service status and demo-mode flags
+- Auth: registration, current-user lookup, malformed tokens, and role-based access
+- Jobs: recruiter publishing plus public search/filter behavior
+- AI analysis: schema validation for job matching and resume readiness responses
+- Frontend: production build catches route, query, and component integration issues
+
 ## Tests
 
 ```bash
