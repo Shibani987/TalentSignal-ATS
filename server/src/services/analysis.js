@@ -43,21 +43,47 @@ export function activeAnalysisProvider() {
 export async function analyzeResume({ resumeText, job }) {
   const provider = activeAnalysisProvider();
   if (provider === 'openai') {
-    return analyzeWithOpenAi({ resumeText, job });
+    try {
+      return withProvider(await analyzeWithOpenAi({ resumeText, job }), `OpenAI (${env.openAiModel})`);
+    } catch {
+      return withProvider(demoAnalysis(resumeText, job), 'TalentSignal AI');
+    }
   }
 
   if (provider === 'gemini') {
-    return analyzeWithGemini({ resumeText, job });
+    try {
+      const { result, modelId } = await analyzeWithGemini({ resumeText, job });
+      return withProvider(result, `Gemini (${modelId})`);
+    } catch {
+      return withProvider(demoAnalysis(resumeText, job), 'TalentSignal AI');
+    }
   }
 
-  return demoAnalysis(resumeText, job);
+  return withProvider(demoAnalysis(resumeText, job), 'TalentSignal AI');
 }
 
 export async function analyzeProfileResume({ resumeText, profile }) {
   const provider = activeAnalysisProvider();
-  if (provider === 'openai') return analyzeProfileWithOpenAi({ resumeText, profile });
-  if (provider === 'gemini') return analyzeProfileWithGemini({ resumeText, profile });
-  return demoProfileAnalysis(resumeText, profile);
+  if (provider === 'openai') {
+    try {
+      return withProvider(await analyzeProfileWithOpenAi({ resumeText, profile }), `OpenAI (${env.openAiModel})`);
+    } catch {
+      return withProvider(demoProfileAnalysis(resumeText, profile), 'TalentSignal AI');
+    }
+  }
+  if (provider === 'gemini') {
+    try {
+      const { result, modelId } = await analyzeProfileWithGemini({ resumeText, profile });
+      return withProvider(result, `Gemini (${modelId})`);
+    } catch {
+      return withProvider(demoProfileAnalysis(resumeText, profile), 'TalentSignal AI');
+    }
+  }
+  return withProvider(demoProfileAnalysis(resumeText, profile), 'TalentSignal AI');
+}
+
+function withProvider(result, provider) {
+  return { ...result, provider };
 }
 
 function buildAnalysisPrompt({ resumeText, job }) {
@@ -108,12 +134,16 @@ async function analyzeWithOpenAi({ resumeText, job }) {
 
 async function analyzeWithGemini({ resumeText, job }) {
   const client = new GoogleGenerativeAI(env.geminiApiKey);
+  const modelId = await selectGeminiModel();
   const model = client.getGenerativeModel({
-    model: env.geminiModel,
+    model: modelId,
     generationConfig: { responseMimeType: 'application/json' }
   });
   const result = await model.generateContent(buildAnalysisPrompt({ resumeText, job }));
-  return validateAnalysisResponse(parseJsonResponse(result.response.text(), 'Gemini analysis response'));
+  return {
+    result: validateAnalysisResponse(parseJsonResponse(result.response.text(), 'Gemini analysis response')),
+    modelId
+  };
 }
 
 async function analyzeProfileWithOpenAi({ resumeText, profile }) {
@@ -131,12 +161,71 @@ async function analyzeProfileWithOpenAi({ resumeText, profile }) {
 
 async function analyzeProfileWithGemini({ resumeText, profile }) {
   const client = new GoogleGenerativeAI(env.geminiApiKey);
+  const modelId = await selectGeminiModel();
   const model = client.getGenerativeModel({
-    model: env.geminiModel,
+    model: modelId,
     generationConfig: { responseMimeType: 'application/json' }
   });
   const result = await model.generateContent(buildProfilePrompt({ resumeText, profile }));
-  return validateResumeReadinessResponse(parseJsonResponse(result.response.text(), 'Gemini resume readiness response'));
+  return {
+    result: validateResumeReadinessResponse(parseJsonResponse(result.response.text(), 'Gemini resume readiness response')),
+    modelId
+  };
+}
+
+const geminiTextModelPreference = [
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-pro-latest',
+  'gemini-2.5-pro'
+];
+
+let geminiModelsPromise;
+
+function normalizeGeminiModelName(name) {
+  return name?.replace(/^models\//, '');
+}
+
+function isUsableGeminiTextModel(model) {
+  const modelId = normalizeGeminiModelName(model.name);
+  const search = `${modelId} ${model.displayName || ''} ${model.description || ''}`.toLowerCase();
+  const blocked = ['tts', 'image', 'embedding', 'veo', 'aqa', 'lyria', 'robotics', 'computer-use', 'antigravity'];
+  return modelId?.startsWith('gemini-')
+    && model.supportedGenerationMethods?.includes('generateContent')
+    && !blocked.some((word) => search.includes(word));
+}
+
+async function listGeminiModels() {
+  geminiModelsPromise ||= fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(env.geminiApiKey)}`)
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Gemini model list failed with ${response.status}`);
+      const data = await response.json();
+      return data.models || [];
+    });
+  try {
+    return await geminiModelsPromise;
+  } catch (error) {
+    geminiModelsPromise = undefined;
+    throw error;
+  }
+}
+
+async function selectGeminiModel() {
+  const configured = normalizeGeminiModelName(env.geminiModel);
+  const models = (await listGeminiModels()).filter(isUsableGeminiTextModel);
+  const available = new Set(models.map((model) => normalizeGeminiModelName(model.name)));
+  if (available.has(configured)) return configured;
+  const preferred = geminiTextModelPreference.find((modelId) => available.has(modelId));
+  if (preferred) return preferred;
+  if (models[0]) return normalizeGeminiModelName(models[0].name);
+  throw new Error('No Gemini text model is available for resume analysis');
 }
 
 function unique(items) {

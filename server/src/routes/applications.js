@@ -7,7 +7,7 @@ import { validate } from '../middleware/validate.js';
 import { Application, applicationStatuses } from '../models/Application.js';
 import { Job } from '../models/Job.js';
 import { User } from '../models/User.js';
-import { activeAnalysisProvider, analyzeResume } from '../services/analysis.js';
+import { analyzeResume } from '../services/analysis.js';
 import { sendInterviewEmail, sendStatusEmail } from '../services/email.js';
 import { extractResumeText } from '../services/resume.js';
 import { sendPrivateFile, signedResumeUrl, uploadPrivateFile } from '../services/storage.js';
@@ -22,7 +22,7 @@ async function runAnalysis(applicationId) {
     app.analysis.status = 'processing';
     await app.save();
     const result = await analyzeResume({ resumeText: app.resumeText, job: app.job });
-    app.analysis = { ...result, status: 'succeeded', provider: activeAnalysisProvider(), analyzedAt: new Date() };
+    app.analysis = { ...result, status: 'succeeded', analyzedAt: new Date() };
     await app.save();
   } catch (error) {
     app.analysis.status = 'failed';

@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { resumeUpload } from '../middleware/upload.js';
 import { User } from '../models/User.js';
-import { activeAnalysisProvider, analyzeProfileResume } from '../services/analysis.js';
+import { analyzeProfileResume } from '../services/analysis.js';
 import { extractResumeText } from '../services/resume.js';
 import { uploadPrivateFile } from '../services/storage.js';
 import { AppError, asyncHandler } from '../utils/errors.js';
@@ -54,13 +54,11 @@ usersRouter.put('/me/resume', requireAuth, requireRole('applicant'), resumeUploa
     req.user.applicantProfile.resumeAnalysis = {
       ...result,
       status: 'succeeded',
-      provider: activeAnalysisProvider(),
       analyzedAt: new Date()
     };
   } catch (error) {
     req.user.applicantProfile.resumeAnalysis = {
       status: 'failed',
-      provider: activeAnalysisProvider(),
       error: error.message,
       analyzedAt: new Date()
     };
