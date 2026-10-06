@@ -23,8 +23,8 @@ export function AppLayout() {
           backdropFilter: 'blur(18px)'
         }}
       >
-        <Toolbar sx={{ gap: 1.5, py: 1, flexWrap: 'wrap' }}>
-          <Stack component={Link} to="/" direction="row" alignItems="center" spacing={1.25} sx={{ mr: { xs: 0, md: 2 } }}>
+        <Toolbar sx={{ gap: 1.5, py: 1, flexWrap: 'wrap', minHeight: { xs: 74, sm: 76 } }}>
+          <Stack component={Link} to="/" direction="row" alignItems="center" spacing={1.25} sx={{ mr: { xs: 0, md: 2 }, minWidth: { xs: '100%', sm: 'auto' } }}>
             <Box
               sx={{
                 width: 38,
@@ -46,8 +46,8 @@ export function AppLayout() {
               </Typography>
             </Box>
           </Stack>
-          <Box sx={{ flex: 1 }} />
-          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.75, justifyContent: 'flex-end' }}>
+          <Box sx={{ flex: 1, display: { xs: 'none', sm: 'block' } }} />
+          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.75, justifyContent: { xs: 'flex-start', sm: 'flex-end' }, width: { xs: '100%', sm: 'auto' } }}>
             <Button component={Link} to="/">Jobs</Button>
             {user?.role === 'recruiter' && <Button component={Link} to="/recruiter/jobs">Manage Jobs</Button>}
             {user?.role === 'recruiter' && <Button component={Link} to="/recruiter/candidates">Candidates</Button>}
@@ -60,7 +60,7 @@ export function AppLayout() {
                 variant="outlined"
                 sx={{
                   alignSelf: 'center',
-                  maxWidth: { xs: 210, sm: 280 },
+                  maxWidth: { xs: '100%', sm: 280 },
                   bgcolor: 'rgba(255,255,255,0.7)',
                   '& .MuiChip-label': {
                     display: 'block',

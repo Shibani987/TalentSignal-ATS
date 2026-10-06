@@ -10,10 +10,8 @@ a {
 .page-shell {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(246,248,251,0.9), rgba(236,244,242,0.96)),
-    radial-gradient(circle at 8% 12%, rgba(249,115,22,0.14), transparent 26%),
-    radial-gradient(circle at 88% 4%, rgba(15,159,110,0.16), transparent 30%),
-    radial-gradient(circle at 52% 0%, rgba(21,94,117,0.12), transparent 38%);
+    linear-gradient(180deg, rgba(248,250,252,0.96), rgba(239,246,249,0.98) 54%, rgba(246,248,251,0.96)),
+    linear-gradient(135deg, rgba(21,94,117,0.06), rgba(249,115,22,0.05) 48%, rgba(15,159,110,0.05));
   color: #102033;
   overflow-x: hidden;
 }
@@ -24,8 +22,8 @@ a {
 
 .interactive-card:hover {
   border-color: rgba(21, 94, 117, 0.32);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
-  transform: translateY(-3px);
+  box-shadow: 0 20px 52px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
 }
 
 .soft-pulse {
@@ -38,6 +36,10 @@ a {
 
 .float-card-delay {
   animation-delay: 900ms;
+}
+
+.hero-media {
+  animation: media-drift 12s ease-in-out infinite alternate;
 }
 
 @keyframes page-enter {
@@ -71,10 +73,20 @@ a {
   }
 }
 
+@keyframes media-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.035);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-content,
   .soft-pulse,
-  .float-card {
+  .float-card,
+  .hero-media {
     animation: none;
   }
 

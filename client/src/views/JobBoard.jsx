@@ -1,10 +1,15 @@
 import React from 'react';
-import { Box, Button, Card, CardContent, Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, Grid, LinearProgress, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import EastIcon from '@mui/icons-material/East';
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import TuneIcon from '@mui/icons-material/Tune';
+import BoltIcon from '@mui/icons-material/Bolt';
+import InsightsIcon from '@mui/icons-material/Insights';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -19,70 +24,87 @@ export function JobBoard() {
     queryKey: ['jobs', filters],
     queryFn: async () => (await api.get('/jobs/public', { params: filters })).data
   });
+  const openRoles = data?.items?.length ?? 0;
+  const heroStats = [
+    ['Resume ranking', 'AI scored'],
+    ['Shortlist speed', '12 min avg'],
+    ['Hiring signal', 'Live pipeline']
+  ];
+
   return (
     <Stack spacing={4}>
       <Box
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          minHeight: { xs: 720, md: 570 },
-          borderRadius: { xs: 3, md: 5 },
+          minHeight: { xs: 680, md: 560 },
+          borderRadius: 3,
           border: '1px solid rgba(148, 163, 184, 0.24)',
-          bgcolor: '#0f4657',
-          boxShadow: '0 34px 110px rgba(15, 23, 42, 0.18)'
+          bgcolor: '#102033',
+          boxShadow: '0 28px 90px rgba(15, 23, 42, 0.16)'
         }}
       >
+        <Box
+          className="hero-media"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `linear-gradient(90deg, rgba(16,32,51,0.96) 0%, rgba(16,32,51,0.84) 42%, rgba(16,32,51,0.28) 72%), url(${heroImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: { xs: '70% center', md: 'center' }
+          }}
+        />
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `linear-gradient(90deg, rgba(15,70,87,0.98) 0%, rgba(15,70,87,0.88) 38%, rgba(15,70,87,0.16) 70%), url(${heroImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: { xs: '68% center', md: 'center' }
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            left: { xs: -190, md: -120 },
-            bottom: { xs: -260, md: -250 },
-            width: { xs: 560, md: 780 },
-            height: { xs: 560, md: 780 },
-            borderRadius: '50%',
-            bgcolor: '#ffffff'
-          }}
-        />
-        <Box
-          className="soft-pulse"
-          sx={{
-            position: 'absolute',
-            right: { xs: -70, md: 72 },
-            top: { xs: 34, md: 70 },
-            width: { xs: 170, md: 240 },
-            height: { xs: 170, md: 240 },
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(249,115,22,0.24), transparent 68%)'
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)',
+            backgroundSize: '46px 46px',
+            maskImage: 'linear-gradient(90deg, #000 0%, rgba(0,0,0,0.72) 48%, transparent 82%)'
           }}
         />
 
-        <Grid container spacing={4} alignItems="center" sx={{ position: 'relative', minHeight: { xs: 720, md: 570 }, p: { xs: 3, md: 6 } }}>
+        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center" sx={{ position: 'relative', minHeight: { xs: 680, md: 560 }, p: { xs: 2.5, sm: 4, md: 6 } }}>
           <Grid item xs={12} md={6.2}>
-            <Box sx={{ maxWidth: 620, pt: { xs: 5, md: 0 } }}>
-            <Chip icon={<AutoAwesomeIcon />} label="TalentSignal ATS" sx={{ mb: 2.5, color: '#0f4657', bgcolor: 'rgba(224,242,254,0.9)', border: '1px solid rgba(21,94,117,0.18)', '& .MuiChip-icon': { color: '#0f4657' } }} />
-            <Typography variant="h2" sx={{ color: '#102033', fontSize: { xs: 42, md: 66 }, lineHeight: 1.02 }}>
-              Hire smarter candidates. Faster.
-            </Typography>
-            <Typography sx={{ mt: 2.5, maxWidth: 560, color: '#526179', fontSize: { xs: 17, md: 20 }, lineHeight: 1.65 }}>
-              Publish roles, collect resumes, and surface the best-fit applicants with clear ATS scoring.
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4, maxWidth: 620 }}>
-              <Button component={Link} to="/register" size="large" variant="contained" sx={{ bgcolor: '#f59e0b', backgroundImage: 'none', color: '#102033', '&:hover': { bgcolor: '#fbbf24' } }}>
-                Start hiring
-              </Button>
-              <Button size="large" variant="outlined" sx={{ color: '#0f4657', borderColor: 'rgba(15,70,87,0.32)', bgcolor: 'rgba(255,255,255,0.62)', '&:hover': { borderColor: '#0f4657', bgcolor: 'rgba(255,255,255,0.86)' } }}>
-                Browse roles
-              </Button>
-            </Stack>
+            <Box sx={{ maxWidth: 640, pt: { xs: 2, md: 0 } }}>
+              <Chip icon={<AutoAwesomeIcon />} label="TalentSignal ATS" sx={{ mb: 2.5, color: '#fff', bgcolor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', '& .MuiChip-icon': { color: '#fbbf24' } }} />
+              <Typography variant="h2" sx={{ color: '#fff', fontSize: { xs: 40, sm: 52, md: 64 }, lineHeight: 1.02, maxWidth: 620 }}>
+                Hire smarter candidates. Faster.
+              </Typography>
+              <Typography sx={{ mt: 2.5, maxWidth: 560, color: 'rgba(255,255,255,0.78)', fontSize: { xs: 16, md: 19 }, lineHeight: 1.65 }}>
+                Publish roles, collect resumes, and surface the best-fit applicants with clear ATS scoring.
+              </Typography>
+              <Grid container spacing={1.2} sx={{ mt: 3, maxWidth: 620 }}>
+                {heroStats.map(([label, value]) => (
+                  <Grid item xs={12} sm={4} key={label}>
+                    <Box
+                      sx={{
+                        border: '1px solid rgba(255,255,255,0.18)',
+                        bgcolor: 'rgba(255,255,255,0.1)',
+                        borderRadius: 2,
+                        p: 1.4,
+                        backdropFilter: 'blur(16px)'
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.64)', fontWeight: 800 }}>
+                        {label}
+                      </Typography>
+                      <Typography sx={{ color: '#fff', fontWeight: 850, lineHeight: 1.2 }}>
+                        {value}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 4, maxWidth: 620 }}>
+                <Button component={Link} to="/register" size="large" variant="contained" sx={{ bgcolor: '#f59e0b', backgroundImage: 'none', color: '#102033', '&:hover': { bgcolor: '#fbbf24' } }}>
+                  Start hiring
+                </Button>
+                <Button component="a" href="#open-roles" size="large" variant="outlined" sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.36)', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { borderColor: '#fff', bgcolor: 'rgba(255,255,255,0.15)' } }}>
+                  Browse roles
+                </Button>
+              </Stack>
             </Box>
           </Grid>
           <Grid item xs={12} md={5.8}>
@@ -99,11 +121,11 @@ export function JobBoard() {
               >
                 <CardContent sx={{ p: 2.4 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box sx={{ width: 44, height: 44, borderRadius: 2, display: 'grid', placeItems: 'center', color: '#0f172a', bgcolor: 'rgba(15, 23, 42, 0.06)' }}>
+                    <Box sx={{ width: 44, height: 44, borderRadius: 2, display: 'grid', placeItems: 'center', color: '#155e75', bgcolor: 'rgba(21, 94, 117, 0.1)' }}>
                       <WorkHistoryIcon />
                     </Box>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="h4" sx={{ lineHeight: 1 }}>{data?.items?.length ?? 0}</Typography>
+                      <Typography variant="h4" sx={{ lineHeight: 1 }}>{openRoles}</Typography>
                       <Typography variant="body2" color="text.secondary">Open roles ready for applicants</Typography>
                     </Box>
                   </Stack>
@@ -124,7 +146,7 @@ export function JobBoard() {
                   <Stack spacing={1.4}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography variant="subtitle2" color="text.secondary">ATS match</Typography>
-                      <Chip size="small" label="Live ranking" color="primary" variant="outlined" />
+                      <Chip size="small" icon={<BoltIcon />} label="Live ranking" color="primary" variant="outlined" />
                     </Stack>
                     <Typography variant="h4">86%</Typography>
                     <Box sx={{ height: 8, borderRadius: 99, bgcolor: 'rgba(15, 70, 87, 0.12)', overflow: 'hidden' }}>
@@ -149,10 +171,10 @@ export function JobBoard() {
               >
                 <CardContent sx={{ p: 2.2 }}>
                   <Stack direction="row" spacing={1.3} alignItems="center">
-                    <SearchIcon color="primary" />
+                    <InsightsIcon color="primary" />
                     <Box>
-                      <Typography fontWeight={800}>Resume search</Typography>
-                      <Typography variant="body2" color="text.secondary">Shortlist qualified candidates in minutes.</Typography>
+                      <Typography fontWeight={800}>Signal-first review</Typography>
+                      <Typography variant="body2" color="text.secondary">Skills, score, and summary in one view.</Typography>
                     </Box>
                   </Stack>
                 </CardContent>
@@ -162,9 +184,16 @@ export function JobBoard() {
         </Grid>
       </Box>
 
-      <Card sx={{ mt: { xs: -1, md: -5 }, mx: { xs: 0, md: 4 }, position: 'relative', zIndex: 2 }}>
+      <Card id="open-roles" sx={{ mt: { xs: -1, md: -5 }, mx: { xs: 0, md: 4 }, position: 'relative', zIndex: 2 }}>
         <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
-          <Grid container spacing={2}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h5">Open roles</Typography>
+              <Typography color="text.secondary">Search by role, company, skill, or working style.</Typography>
+            </Box>
+            <Chip icon={<TuneIcon />} label={hasFilters ? 'Filters active' : 'All roles'} color={hasFilters ? 'secondary' : 'primary'} variant="outlined" />
+          </Stack>
+          <Grid container spacing={1.5}>
             <Grid item xs={12} md={6}><TextField fullWidth label="Search by title, company, or skill" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} /> }} /></Grid>
             <Grid item xs={12} md={3}><TextField select fullWidth label="Work mode" value={filters.workMode} onChange={(e) => setFilters({ ...filters, workMode: e.target.value })}><MenuItem value="">Any</MenuItem><MenuItem value="remote">Remote</MenuItem><MenuItem value="hybrid">Hybrid</MenuItem><MenuItem value="onsite">Onsite</MenuItem></TextField></Grid>
             <Grid item xs={12} md={3}><TextField select fullWidth label="Type" value={filters.employmentType} onChange={(e) => setFilters({ ...filters, employmentType: e.target.value })}><MenuItem value="">Any</MenuItem><MenuItem value="full-time">Full-time</MenuItem><MenuItem value="contract">Contract</MenuItem><MenuItem value="internship">Internship</MenuItem></TextField></Grid>
@@ -184,15 +213,31 @@ export function JobBoard() {
           <Grid item xs={12} md={6} lg={4} key={job._id}>
             <Card className="interactive-card" sx={{ height: '100%' }}><CardContent sx={{ p: 3, height: '100%' }}>
               <Stack spacing={2} sx={{ height: '100%' }}>
-                <Box><Typography variant="h6">{job.title}</Typography><Typography color="text.secondary">{job.company} - {job.location}</Typography></Box>
+                <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                  <Box sx={{ width: 44, height: 44, borderRadius: 2, display: 'grid', placeItems: 'center', flex: '0 0 auto', color: 'primary.main', bgcolor: 'rgba(21, 94, 117, 0.1)' }}>
+                    <BusinessCenterIcon />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6">{job.title}</Typography>
+                    <Typography color="text.secondary">{job.company}</Typography>
+                  </Box>
+                </Stack>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
                   <Chip label={job.workMode || 'role'} size="small" color="primary" variant="outlined" />
                   <Chip label={job.employmentType || 'job'} size="small" sx={{ bgcolor: 'rgba(249,115,22,0.12)' }} />
+                  {job.location && <Chip icon={<LocationOnIcon />} label={job.location} size="small" variant="outlined" />}
                 </Stack>
                 <Stack direction="row" spacing={1} flexWrap="wrap">{job.requiredSkills?.slice(0, 4).map((s) => <Chip key={s} label={s} size="small" />)}</Stack>
-                <Typography color="text.secondary">{job.description.slice(0, 150)}...</Typography>
+                <Typography color="text.secondary">{job.description?.slice(0, 150)}...</Typography>
                 <Box sx={{ flex: 1 }} />
-                <Button component={Link} to={`/jobs/${job._id}`} variant="outlined" endIcon={<EastIcon />}>View role</Button>
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.7 }}>
+                    <Typography variant="caption" color="text.secondary" fontWeight={800}>ATS readiness</Typography>
+                    <Typography variant="caption" color="primary" fontWeight={900}>High</Typography>
+                  </Stack>
+                  <LinearProgress variant="determinate" value={82} sx={{ height: 7, borderRadius: 4 }} />
+                </Box>
+                <Button component={Link} to={`/jobs/${job._id}`} variant="outlined" endIcon={<EastIcon />} sx={{ alignSelf: 'flex-start' }}>View role</Button>
               </Stack>
             </CardContent></Card>
           </Grid>

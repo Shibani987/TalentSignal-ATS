@@ -26,9 +26,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           border: '1px solid rgba(148, 163, 184, 0.22)',
-          boxShadow: '0 18px 55px rgba(15, 23, 42, 0.08)',
-          backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9))',
-          backdropFilter: 'blur(18px)',
+          boxShadow: '0 16px 46px rgba(15, 23, 42, 0.07)',
+          backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.94))',
+          backdropFilter: 'blur(14px)',
           transition: 'transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease'
         }
       }
@@ -37,7 +37,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          boxShadow: 'none'
+          boxShadow: 'none',
+          minHeight: 40
         },
         contained: {
           backgroundImage: 'linear-gradient(135deg, #155e75, #0f9f6e)',
@@ -60,8 +61,26 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            backgroundColor: 'rgba(255,255,255,0.78)'
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            borderRadius: 8
+          },
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(148, 163, 184, 0.34)'
+          },
+          '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(21, 94, 117, 0.42)'
           }
+        }
+      }
+    },
+    MuiLinearProgress: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(21, 94, 117, 0.1)',
+          overflow: 'hidden'
+        },
+        bar: {
+          backgroundImage: 'linear-gradient(90deg, #155e75, #0f9f6e, #f97316)'
         }
       }
     },
