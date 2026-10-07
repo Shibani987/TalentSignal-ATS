@@ -1,27 +1,41 @@
 # AI-Powered ATS Client
 
-React and Vite frontend for an applicant tracking system dashboard. The current
-screen presents a hiring overview with candidate pipeline counts, role metrics,
-and quick actions for jobs and candidate review.
+React and Vite frontend for the applicant and recruiter workspaces. It handles
+authentication, protected routing, job discovery, applicant submissions,
+candidate review, and recruiter pipeline management.
 
 ## Scripts
 
 ```bash
-npm install
 npm run dev
 npm run build
-npm run lint
+npm run preview
+```
+
+Run these through npm workspaces from the repository root when working on the
+full app:
+
+```bash
+npm run dev --workspace client
+npm run build --workspace client
 ```
 
 ## Tech Stack
 
-- React 19
-- Vite 8
+- React 18
+- Vite 5
 - Material UI
-- Oxlint
+- React Router
+- TanStack React Query
+- Axios
 
 ## Project Structure
 
-- `src/App.jsx` contains the dashboard experience.
+- `src/api/client.js` configures the API client and auth token handling.
+- `src/router.jsx` defines public and protected routes.
+- `src/state/AuthContext.jsx` manages the signed-in user session.
+- `src/views` contains applicant and recruiter pages.
+- `src/ui` contains shared route, layout, and state components.
 - `src/index.css` defines global browser and typography defaults.
+- `src/styles.css` contains app-level visual styling.
 - `index.html` contains document metadata and the app mount point.
