@@ -49,6 +49,13 @@ Demo accounts after seeding:
 - Recruiter: `recruiter@example.com` / `Password123!`
 - Applicant: `applicant@example.com` / `Password123!`
 
+## Local Setup Notes
+
+- Run commands from the repository root so npm workspace scripts can find both apps.
+- Seed data depends on `MONGODB_URI`; start MongoDB or provide an Atlas URI before running `npm run seed`.
+- Keep the server and client `.env` files local. The app intentionally falls back to demo storage, deterministic resume analysis, and skipped email delivery when optional service credentials are missing.
+- If port `5173` or `5000` is already in use, stop the conflicting process or update the matching Vite/API environment setting before starting the app again.
+
 ## Local Health Check
 
 Run the backend tests and frontend production build before pushing:
