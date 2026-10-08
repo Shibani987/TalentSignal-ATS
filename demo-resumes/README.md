@@ -17,3 +17,9 @@ This resume is meant to exercise the negative-feedback path, not the happy path
 for a strong candidate. A healthy result should produce a low or moderate match
 score and specific improvement guidance rather than failing extraction or
 returning generic advice.
+
+## Reviewer Notes
+
+When using this file during demos, record the job title, final match score, and
+top three recommendations. Those notes make it easier to compare deterministic
+demo analysis with live provider output when AI credentials are enabled later.
