@@ -67,6 +67,10 @@ npm run build
 
 The test suite uses an in-memory MongoDB instance, so it does not require a local database. The frontend build validates that the applicant and recruiter workspaces compile with the current API client and routing setup.
 
+## Demo Review Path
+
+For a quick end-to-end review, seed the demo accounts, publish a job as the recruiter, and submit the included sample resume from the applicant workspace. The recruiter candidate detail page should show the extracted resume signal, match score, status controls, and retry analysis action without exposing private storage paths.
+
 ## Verification Matrix
 
 - API smoke: `/api/health` reports service status and demo-mode flags
