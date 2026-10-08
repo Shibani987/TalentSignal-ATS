@@ -39,3 +39,9 @@ npm run build --workspace client
 - `src/index.css` defines global browser and typography defaults.
 - `src/styles.css` contains app-level visual styling.
 - `index.html` contains document metadata and the app mount point.
+
+## Review Tips
+
+Use both seeded roles when checking the client locally. The applicant workspace
+exercises job discovery and resume submission, while the recruiter workspace
+exercises profile setup, candidate review, status changes, and analysis retry.
