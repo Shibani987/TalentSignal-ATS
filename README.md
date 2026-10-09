@@ -67,6 +67,14 @@ npm run build
 
 The test suite uses an in-memory MongoDB instance, so it does not require a local database. The frontend build validates that the applicant and recruiter workspaces compile with the current API client and routing setup.
 
+## Demo Runbook
+
+1. Start MongoDB or confirm `MONGODB_URI` points at a reachable database.
+2. Run `npm install` from the repository root after pulling fresh changes.
+3. Run `npm run seed` to refresh the recruiter and applicant demo accounts.
+4. Start the full stack with `npm run dev`.
+5. Open the frontend at `http://localhost:5173` and verify the backend health response at `http://localhost:5000/api/health`.
+
 ## Demo Review Path
 
 For a quick end-to-end review, seed the demo accounts, publish a job as the recruiter, and submit the included sample resume from the applicant workspace. The recruiter candidate detail page should show the extracted resume signal, match score, status controls, and retry analysis action without exposing private storage paths.
