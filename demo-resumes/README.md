@@ -18,6 +18,12 @@ for a strong candidate. A healthy result should produce a low or moderate match
 score and specific improvement guidance rather than failing extraction or
 returning generic advice.
 
+## Troubleshooting
+
+- If extraction fails, confirm the file was uploaded as PDF or DOCX and did not exceed the configured upload limit.
+- If the match score looks unexpectedly high, compare the job requirements with the resume text for overlapping keywords.
+- If resume links fail in recruiter review, confirm local demo storage or private S3 access is configured for the API.
+
 ## Reviewer Notes
 
 When using this file during demos, record the job title, final match score, and
