@@ -45,3 +45,10 @@ npm run build --workspace client
 Use both seeded roles when checking the client locally. The applicant workspace
 exercises job discovery and resume submission, while the recruiter workspace
 exercises profile setup, candidate review, status changes, and analysis retry.
+
+## UI Smoke Checks
+
+- Confirm unauthenticated users can browse public jobs and are redirected before applying.
+- Confirm applicant users can update profile skills and submit a PDF or DOCX resume.
+- Confirm recruiter users can create a job, review candidates, change statuses, and open resume links.
+- Confirm loading, empty, and error states render clearly on slow or failed API responses.
