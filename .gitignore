@@ -5,3 +5,5 @@ dist
 coverage
 uploads
 *.log
+.vercel
+.env*
