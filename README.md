@@ -104,6 +104,9 @@ The backend test suite covers authorization, recruiter job publishing, and AI an
 - Configure `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` for OpenAI analysis
 - Or configure `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL` for Gemini analysis
 - Configure SMTP variables for status updates and interview invitations
+- Set `STORAGE_PROVIDER=cloudinary` and provide the Cloudinary credentials to store resumes there
+- Set `AI_PROVIDER=gemini` and provide `GEMINI_API_KEY` to enable Gemini analysis
+- `EMAIL_FROM` and `SMTP_FROM` are both accepted as the sender address setting
 - Run the frontend build with `npm run build --workspace client`
 - Start the API with `npm start --workspace server`
 
@@ -121,10 +124,12 @@ The backend test suite covers authorization, recruiter job publishing, and AI an
 - Role-specific protected dashboards
 - Recruiter company profile and applicant skill profile editing
 - Recruiter job creation, publishing, archiving, and private job management
+- Recruiter job editing from the job management page
 - Public job board with search and filters
 - Applicant application submission with PDF/DOCX validation and duplicate prevention
 - Private resume storage with S3/demo fallback
 - Server-side PDF/DOCX resume text extraction
 - AI analysis with schema validation, success/failure state, and recruiter retry
-- Recruiter candidate ranking, detail review, Kanban-compatible status pipeline, status history
+- Recruiter candidate ranking with status, score, skill, and experience filters
+- Recruiter drag-and-drop Kanban pipeline, candidate detail review, and status history
 - Status update emails and interview invitations with failure isolation

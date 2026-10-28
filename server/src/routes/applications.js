@@ -96,12 +96,26 @@ applicationsRouter.get('/stats/dashboard', requireAuth, requireRole('recruiter')
 applicationsRouter.get('/recruiter', requireAuth, requireRole('recruiter'), [
   query('job').optional({ values: 'falsy' }).isMongoId(),
   query('status').optional({ values: 'falsy' }).isIn(applicationStatuses),
-  query('minScore').optional({ values: 'falsy' }).isInt({ min: 0, max: 100 })
+  query('minScore').optional({ values: 'falsy' }).isInt({ min: 0, max: 100 }),
+  query('skill').optional({ values: 'falsy' }).isString().trim().isLength({ min: 1, max: 80 }),
+  query('minExperience').optional({ values: 'falsy' }).isInt({ min: 0, max: 60 })
 ], validate, asyncHandler(async (req, res) => {
   const filter = { recruiter: req.user._id };
   if (req.query.job) filter.job = req.query.job;
   if (req.query.status) filter.status = req.query.status;
   if (req.query.minScore) filter['analysis.matchScore'] = { $gte: Number(req.query.minScore) };
+  if (req.query.skill || req.query.minExperience) {
+    const profileFilter = { role: 'applicant' };
+    if (req.query.skill) {
+      const escapedSkill = req.query.skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      profileFilter['applicantProfile.skills'] = { $regex: `^${escapedSkill}$`, $options: 'i' };
+    }
+    if (req.query.minExperience) {
+      profileFilter['applicantProfile.experience'] = { $elemMatch: { years: { $gte: Number(req.query.minExperience) } } };
+    }
+    const applicants = await User.find(profileFilter).select('_id').lean();
+    filter.applicant = { $in: applicants.map((applicant) => applicant._id) };
+  }
   const items = await Application.find(filter)
     .populate('job', 'title company')
     .populate('applicant', 'name email applicantProfile')

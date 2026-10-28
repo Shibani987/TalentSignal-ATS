@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, errorMessage } from '../api/client.js';
@@ -14,11 +15,15 @@ const emptyJob = { title: '', company: '', location: '', workMode: 'hybrid', emp
 
 export function JobsManage() {
   const [form, setForm] = useState(emptyJob);
+  const [editingId, setEditingId] = useState(null);
   const qc = useQueryClient();
   const { data, isLoading, isError, error } = useQuery({ queryKey: ['my-jobs'], queryFn: async () => (await api.get('/jobs/mine')).data });
-  const create = useMutation({
-    mutationFn: async () => (await api.post('/jobs', { ...form, responsibilities: form.responsibilities.split('\n').filter(Boolean), requiredSkills: form.requiredSkills.split(',').map((skill) => skill.trim()).filter(Boolean) })).data,
-    onSuccess: () => { setForm(emptyJob); qc.invalidateQueries({ queryKey: ['my-jobs'] }); }
+  const save = useMutation({
+    mutationFn: async () => {
+      const payload = { ...form, responsibilities: form.responsibilities.split('\n').filter(Boolean), requiredSkills: form.requiredSkills.split(',').map((skill) => skill.trim()).filter(Boolean) };
+      return (await (editingId ? api.put(`/jobs/${editingId}`, payload) : api.post('/jobs', payload))).data;
+    },
+    onSuccess: () => { setForm(emptyJob); setEditingId(null); qc.invalidateQueries({ queryKey: ['my-jobs'] }); }
   });
   const status = useMutation({ mutationFn: async ({ id, value }) => (await api.patch(`/jobs/${id}/status`, { status: value })).data, onSuccess: () => qc.invalidateQueries({ queryKey: ['my-jobs'] }) });
 
@@ -26,6 +31,17 @@ export function JobsManage() {
   if (isError) return <ErrorState message={errorMessage(error)} />;
 
   const published = data.items.filter((job) => job.status === 'published').length;
+  const startEditing = (job) => {
+    setEditingId(job._id);
+    setForm({
+      title: job.title, company: job.company, location: job.location, workMode: job.workMode,
+      employmentType: job.employmentType, description: job.description,
+      responsibilities: (job.responsibilities || []).join('\n'),
+      requiredSkills: (job.requiredSkills || []).join(', '),
+      experienceRequirements: job.experienceRequirements, status: job.status
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <Stack spacing={3.5}>
@@ -47,10 +63,10 @@ export function JobsManage() {
             <CardContent sx={{ p: 3 }}>
               <Stack spacing={2}>
                 <Box>
-                  <Typography variant="h5">Create job</Typography>
+                  <Typography variant="h5">{editingId ? 'Edit job' : 'Create job'}</Typography>
                   <Typography color="text.secondary">Use clear skills and responsibilities to improve matching.</Typography>
                 </Box>
-                {create.isError && <Alert severity="error">{errorMessage(create.error)}</Alert>}
+                {save.isError && <Alert severity="error">{errorMessage(save.error)}</Alert>}
                 <TextField label="Title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
                 <TextField label="Company" value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} />
                 <TextField label="Location" value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} />
@@ -66,7 +82,10 @@ export function JobsManage() {
                 <TextField label="Description" multiline minRows={4} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
                 <TextField label="Responsibilities" multiline minRows={3} value={form.responsibilities} onChange={(event) => setForm({ ...form, responsibilities: event.target.value })} />
                 <TextField label="Experience requirements" value={form.experienceRequirements} onChange={(event) => setForm({ ...form, experienceRequirements: event.target.value })} />
-                <Button startIcon={<AddIcon />} variant="contained" onClick={() => create.mutate()} disabled={create.isPending}>Create job</Button>
+                <Stack direction="row" spacing={1}>
+                  <Button startIcon={editingId ? <EditOutlinedIcon /> : <AddIcon />} variant="contained" onClick={() => save.mutate()} disabled={save.isPending}>{editingId ? 'Save changes' : 'Create job'}</Button>
+                  {editingId && <Button onClick={() => { setEditingId(null); setForm(emptyJob); }}>Cancel</Button>}
+                </Stack>
               </Stack>
             </CardContent>
           </Card>
@@ -97,6 +116,7 @@ export function JobsManage() {
                       </Box>
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
+                      <Button startIcon={<EditOutlinedIcon />} onClick={() => startEditing(job)}>Edit</Button>
                       <Button onClick={() => status.mutate({ id: job._id, value: 'published' })}>Publish</Button>
                       <Button onClick={() => status.mutate({ id: job._id, value: 'archived' })}>Archive</Button>
                     </Stack>

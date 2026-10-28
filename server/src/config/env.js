@@ -27,7 +27,7 @@ export const env = {
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpUser: clean(process.env.SMTP_USER),
   smtpPass: clean(process.env.SMTP_PASS),
-  smtpFrom: clean(process.env.SMTP_FROM) || 'ATS Demo <no-reply@example.com>'
+  smtpFrom: clean(process.env.SMTP_FROM) || clean(process.env.EMAIL_FROM) || 'ATS Demo <no-reply@example.com>'
 };
 
 export const isProduction = env.nodeEnv === 'production';

@@ -14,7 +14,19 @@ export function createApp() {
   app.use(helmet());
   app.use(cors({ origin: env.frontendOrigin, credentials: true }));
   app.use(express.json({ limit: '1mb' }));
-  app.get('/api/health', (req, res) => res.json({ ok: true, demo: { ai: !env.openAiApiKey, storage: !env.s3Bucket, email: !env.smtpHost } }));
+  app.get('/api/health', (req, res) => res.json({
+    ok: true,
+    demo: {
+      ai: env.aiProvider === 'openai' ? !env.openAiApiKey : env.aiProvider === 'gemini' ? !env.geminiApiKey : true,
+      storage: env.storageProvider === 'cloudinary'
+        ? !(env.cloudinaryCloudName && env.cloudinaryApiKey && env.cloudinaryApiSecret)
+        : env.storageProvider === 's3'
+          ? !(env.awsRegion && env.awsAccessKeyId && env.awsSecretAccessKey && env.s3Bucket)
+          : !(env.cloudinaryCloudName && env.cloudinaryApiKey && env.cloudinaryApiSecret)
+            && !(env.awsRegion && env.awsAccessKeyId && env.awsSecretAccessKey && env.s3Bucket),
+      email: !(env.smtpHost && env.smtpUser && env.smtpPass)
+    }
+  }));
   app.use('/api/auth', authRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/jobs', jobsRouter);
