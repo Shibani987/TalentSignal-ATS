@@ -110,6 +110,16 @@ The backend test suite covers authorization, recruiter job publishing, and AI an
 - Run the frontend build with `npm run build --workspace client`
 - Start the API with `npm start --workspace server`
 
+### Vercel Services
+
+The root `vercel.json` deploys the Vite client and Express API as services in one Vercel project. Public `/api/*` requests route to the API; all other paths route to the client, with an SPA fallback for React Router.
+
+- Configure `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_ORIGIN`, Cloudinary, Gemini, and SMTP values in the Vercel project's Environment Variables; do not upload `.env` files.
+- Set `VITE_API_URL=/api` for the client build. This is the same-origin public route, so no service binding is needed: the browser calls the API through the top-level rewrite.
+- No service-to-service binding is configured because the server only calls MongoDB and external providers; it does not call the client service.
+- Run `vercel dev -L` from the repository root to run the configured services locally.
+- Resume uploads are limited to 4 MB so the multipart request remains below Vercel Functions' 4.5 MB request-body limit.
+
 ## Release Checklist
 
 - Confirm `JWT_SECRET`, `FRONTEND_ORIGIN`, and `MONGODB_URI` are set for the target environment
